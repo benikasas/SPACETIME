@@ -40,11 +40,6 @@ Nu0_step = 1       # if tadpole improving, number of cfgs to skip between calcul
 Nu0_avg = 1        # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
 
-# begin='Begin time ' + str(datetime.datetime.now()) + ' with threads: ' + str(threads)
-# with open("time.txt", "a") as myfile:
-#     myfile.write(begin + '\n')
-
-
 ### generate lattices
 for b in betas:
     dir_name = 'C:/Users/justi/SPACETIME/C_Code/logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100))
@@ -63,7 +58,3 @@ if __name__ == '__main__':
     func = functools.partial(generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
     p.map(func, betas) # call multiprocessing map function
     p.terminate()      # terminate multiprocessing
-
-# endtime='End time ' + str(datetime.datetime.now()) + ' with threads: ' + str(threads)
-# with open("time.txt", "a") as myfile:
-#     myfile.write(endtime + '\n')
