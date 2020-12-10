@@ -20,4 +20,9 @@ def fluctuations(Nfluc,epsilon):
         disturbance.append(X)
     return disturbance
 
+for i in range(10):
+    print(i)
+    i=i+1
+    print(i)
+
 value=fluctuations(Nfluc, epsilon)
