@@ -23,14 +23,14 @@ import datetime
 # epsilon = 0.24      # how "far" away from identity the updates will be
 # threads = 4       # threads used in multiprocessing
 
-Nt = 2
-Nx = 2
-Ny = 2
-Nz = 2
+Nt = 14
+Nx = 14
+Ny = 14
+Nz = 14
 Ncfg = 1000          # number of lattices to generate
 action = 'W'    # W = Wilson, Wilson with rectangle improvements, W_T and WR_T = With tadpole improvement
 betas = [5.7]      # betas to be generated, beta = 6/g^2
-startcfg = 1000    # warm start (0) or existing cfg number to start the Markov chain
+startcfg = 1    # warm start (0) or existing cfg number to start the Markov chain
 Nhits = 50         # hits between each update
 Nmatrix = 10000    # number of random SU(3) matrices to be used for updates
 epsilon = 0.20      # how "far" away from identity the updates will be

@@ -13,8 +13,8 @@ from plaq_v_cfg import Nstart, Nend
 
 
 ## Settings
-## Nstart = 1
-## Nend = 1100
+# Nstart = 1
+# Nend = 1790
 beta=betas[0]
 
 ## Uses the settings to generate the name for the selected data from relevant file.

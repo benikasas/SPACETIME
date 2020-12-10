@@ -19,20 +19,22 @@ from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0
 # beta = 5.5
 # u0 = 1.0
 Nstart = 1
-Nend = 1100
+Nend = 1790
 beta=betas[0]
 
-dir = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '/'
-U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_'
+if __name__ == "__main__":
 
-### prepare output file
-outfile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
-fout = open(outfile, 'a')
+    dir = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '/'
+    U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_'
 
-fout.write('#1:cfg  2:plaquette\n')
-for Ncfg in range(Nstart, Nend + 1):
-    U = np.load(U_infile + str(Ncfg))
-    pl = gl.fn_average_plaquette(U)
-    fout.write(str(Ncfg) + ' ' + str(pl) + '\n' )
-#end Ncfg
-fout.close()
+    ### prepare output file
+    outfile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
+    fout = open(outfile, 'a')
+
+    fout.write('#1:cfg  2:plaquette\n')
+    for Ncfg in range(Nstart, Nend + 1):
+        U = np.load(U_infile + str(Ncfg))
+        pl = gl.fn_average_plaquette(U)
+        fout.write(str(Ncfg) + ' ' + str(pl) + '\n' )
+    #end Ncfg
+    fout.close()
