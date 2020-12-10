@@ -1,7 +1,8 @@
 import numpy as np
+from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0
 
 Nfluc=1000
-epsilon=0.2
+beta=betas[0]
 
 
 ## A function to generate a single disturbance in Spacetime
@@ -20,9 +21,19 @@ def fluctuations(Nfluc,epsilon):
         disturbance.append(X)
     return disturbance
 
-for i in range(10):
-    print(i)
-    i=i+1
-    print(i)
-
+class spacetime():
+    def __init__(self, Nt, Nx, Ny, Nz, beta, u0, U=None):
+        if None == U:
+            # Creates a spacetime grid, and at every point theres 4 
+            U = [[[[np.zeros(4) for z in range(Nz)] for y in range(Ny)] for x in range(Nx)] for t in range(Nt)]
+        # convert to numpy arrays -> significant speed up
+        self.U = np.array(U)
+        self.beta = beta
+        self.u0 = u0
+        self.Nx = Nx
+        self.Ny = Ny
+        self.Nz = Nz
+        self.Nt = Nt
 value=fluctuations(Nfluc, epsilon)
+A=spacetime(Nt, Nx, Ny, Nz, beta, u0)
+print(A)
