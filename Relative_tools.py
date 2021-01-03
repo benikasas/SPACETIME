@@ -37,18 +37,41 @@ class spacetime():
         # self.Nx = Nx
         # self.Ny = Ny
         # self.Nz = Nz
-        # self.Nt = Nt
+        # self.Nt = Nt#
     
+    ## A function to disturb the initialized empty spacetime array by adding random numbers to U via fluctuations fn.
+    ## Decided to put it as a separate function for cleanliness
+    def distrubinator()
+        for t in range(Nt):
+            for x in range(Nt):
+                for y in range(Ny):
+                    for z in range(Nz):
+                        i=random.
+                        U_prime=U(Nt, Nx, Ny, Nz)
+
+
     ## First order approximation in a direction
+    ## Make a for loop in the future
     def first_approx():
-        directions=[Nt, Nx, Ny, Nz]
-        for i in directions:
-            U_og=trial.U(Nt, Nx, Ny, Nz)
-            i=i+1
-            U_prime_t=trial.U(Nt, Nx, Ny, Nz)       ## Might actually add to the value but might not move forward in direction
-            partial_approx_t=(U_prime_t-U_og)/lattice_space
-            approx+=partial_approx_t
+        # directions=[Nt, Nx, Ny, Nz]
+        # for i in directions:
+        #     U_og=trial.U(Nt, Nx, Ny, Nz)
+        #     i=i+1
+        #     U_prime_t=trial.U(Nt, Nx, Ny, Nz)       ## Might actually add to the value but might not move forward in direction
+        #     partial_approx_t=(U_prime_t-U_og)/lattice_space
+        #     approx+=partial_approx_t
+        U_og=trial.U(Nt, Nx, Ny, Nz)
+        U_t=trial.U(Nt+1, Nx, Ny, Nz)
+        U_x=trial.U(Nt, Nx+1, Ny, Nz)
+        U_y=trial.U(Nt, Nx, Ny+1, Nz)
+        U_z=trial.U(Nt, Nx, Ny, Nz+1)        
+        diff_t=(U_t-U_og)/lattice_space
+        diff_x=(U_x-U_og)/lattice_space
+        diff_y=(U_y-U_og)/lattice_space
+        diff_z=(U_z-U_og)/lattice_space
+        total_diff=diff_t+diff_x+diff_y+diff_z
+        return total_diff
 
 value=fluctuations(Nfluc, epsilon)
-A=spacetime(Nt, Nx, Ny, Nz, beta, u0)
-print(A)
+
+print()
