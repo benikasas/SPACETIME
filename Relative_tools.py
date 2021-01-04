@@ -26,7 +26,7 @@ def fluctuations(Nfluc=1000, epsilon=0.2):
 class spacetime():
     def __init__(self, Nt, Nx, Ny, Nz, beta, u0, U=None):
         if None == U:
-            # Creates a spacetime grid, and at every point theres 4 
+            # Creates a spacetime grid, and at every point theres 4 different directions to be perturbed
             U = [[[[[np.zeros(1) for mu in range(4)] for z in range(Nz)] for y in range(Ny)] for x in range(Nx)] for t in range(Nt)]
         # convert to numpy arrays -> significant speed up
         self.U = np.array(U)
@@ -49,7 +49,7 @@ class spacetime():
                         r=np.random.randint(0, Nfluc)
                         for mu in range(4):
                             disturbance=disturbances[r]
-                            U_prime[t, x, y, z, mu]=self.U[t, x, y, z, mu]+disturbance[mu]
+                            U_prime[t, x, y, z, mu]=np.append(U_prime[t, x, y, z, mu], disturbance[mu])
         U=U_prime
         return U
 
