@@ -121,7 +121,7 @@ def inv_Jack(SPrime, t, x, y, z):
     jack[1][:]=np.add(jack[1][:], (SP_x-SP_og))
     jack[2][:]=np.add(jack[2][:], (SP_y-SP_og))
     jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
-    print(jack)
+    jack=np.linalg.inv(jack)
     return jack
 
 
