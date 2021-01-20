@@ -105,17 +105,22 @@ def first_approx_tool(SP, t, x, y, z):
         return 1
 
 ### First order approximation of the Jacobian inverse
-def inv_Jack(SP, t, x, y, z):
-    jack=np.zeros((4, 4))
-    SP_og=SP[t, x, y, z, :]
-    SP_t=SP[t+1, x, y, z, :]
-    SP_x=SP[t, x+1, y, z, :]
-    SP_y=SP[t, x, y+1, z, :]
-    SP_z=SP[t, x, y, z+1, :]
-    jack[0][:]=(SP_t-SP_og)
-    jack[1][:]=(SP_x-SP_og)
-    jack[2][:]=(SP_y-SP_og)
-    jack[3][:]=(SP_z-SP_og)
+def inv_Jack(SPrime, t, x, y, z):
+    # jack=np.zeros((4, 4))
+    SP_og=SPrime[t, x, y, z, :]
+    SP_t=SPrime[t+1, x, y, z, :]
+    SP_x=SPrime[t, x+1, y, z, :]
+    SP_y=SPrime[t, x, y+1, z, :]
+    SP_z=SPrime[t, x, y, z+1, :]
+    # jack[0][:]=(SP_t-SP_og)
+    # jack[1][:]=(SP_x-SP_og)
+    # jack[2][:]=(SP_y-SP_og)
+    # jack[3][:]=(SP_z-SP_og)   
+    jack=np.identity(4)
+    jack[0][:]=np.add(jack[0][:], (SP_t-SP_og))
+    jack[1][:]=np.add(jack[1][:], (SP_x-SP_og))
+    jack[2][:]=np.add(jack[2][:], (SP_y-SP_og))
+    jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
     print(jack)
     return jack
 

@@ -521,6 +521,7 @@ class lattice():
         approx=Relative_tools.first_approx_tool(SP, t, x, y, z)
         Action=(1-approx)*Lqcd
         Jack=Relative_tools.inv_Jack(SPrime, t, x, y, z)
+        # print(SPrime[t, x, y, z, :])
         return 1
 
 
