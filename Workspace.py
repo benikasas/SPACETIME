@@ -1,9 +1,9 @@
 import numpy as np
-from gauge_latticeqcd import matrix_su2, matrix_su3, create_su3_set, lattice
-from generate import *
-import tools_v1 as tool
+# from gauge_latticeqcd import matrix_su2, matrix_su3, create_su3_set, lattice
+# from generate import *
+# import tools_v1 as tool
 
-beta=betas[0]
+# beta=betas[0]
 Nt=5
 Nz=7
 Ny=9
@@ -32,11 +32,12 @@ u0=1
 #     approx=(U_prime-U_og)/lattice
 # Trial=spacetime(Nt, Nx, Ny, Nz, beta, u0)
 # print(Trial.U[1, 1, 1, 1])
-partial_sum=0
-U=[Nx, Ny, Nz, Nt]
-for i in U:
-    i=i+1
-    print(i)
-    partial_sum+=i
-    print(partial_sum)
-print(partial_sum)
+# partial_sum=0
+# jack=np.zeros((4,4))
+# jack[1,1]=1
+# for i in range(4):
+#     for j in range(4):
+#         print(jack[i][j])
+
+SP=np.zeros((14, 14, 14, 14, 4))
+print(len(SP[])

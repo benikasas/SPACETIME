@@ -6,7 +6,6 @@ import lattice_collection as lc
 import tools_v1 as tool
 import datetime
 import params
-import Relative_tools
 
 ### File with Lattice class to sweep and generate lattices and functions: 
 ### plaquette, average plaquette, polyakov, planar and non-planar wilson loops, wilson action,
@@ -301,7 +300,7 @@ def fn_F_munu(U, t, x, y, z, mu, nu):
 
 #-------------Generation code -------------------
 ### function called by multiprocessor in generate script
-def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
+def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
     
     ### loop over (t,x,y,z) and mu and set initial collection of links
     ### Either:
@@ -333,10 +332,60 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, b
     
     print('Continuing from cfg: ', startcfg)
     print('... generating lattices')
-    matrices = Relative_tools.create_su3_set(epsilon, Nmatrix)
-    acceptance = U.markov_chain_sweep(epsilon, Ncfg, Nfluc, matrices, startcfg, name, thermal, border, Nhits, action, Nu0_step, Nu0_avg)
+    matrices = create_su3_set(epsilon, Nmatrix)
+    acceptance = U.markov_chain_sweep(Ncfg, matrices, startcfg, name, Nhits, action, Nu0_step, Nu0_avg)
     print("acceptance:", acceptance)
 
+### Generate SU(2) matrix as described in Gattringer & Lang
+def matrix_su2(epsilon = 0.2):
+    ### Pauli matrices
+    sigma1 = np.array([[0, 1], [1, 0]])
+    sigma2 = np.array([[0, -1J], [1J, 0]])
+    sigma3 = np.array([[1, 0], [0, -1]])
+    r = [0., 0., 0., 0.]
+    for i in range(4):
+        r[i] = (np.random.uniform(0, 0.5))
+    ### normalize
+    norm = np.sqrt(r[1]**2 + r[2]**2 + r[3]**2)
+    r[1:] = map(lambda x: epsilon*x / norm, r[1:])
+    r[0]  = np.sign(r[0]) * np.sqrt(1. - epsilon**2)
+    M = np.identity(2, dtype='complex128')
+    M = M * r[0]
+    M = np.add(1J * r[1] * sigma1, M)
+    M = np.add(1J * r[2] * sigma2, M)
+    M = np.add(1J * r[3] * sigma3, M)
+    return M
+
+### Use SU(2) matrices to generate SU(3) matrix
+### From Gattringer & Lang's textbook.
+### Need 3 SU(2) matrices for one SU(3) matrix
+def matrix_su3(epsilon = 0.2):
+    R_su2 = matrix_su2(epsilon)
+    S_su2 = matrix_su2(epsilon)
+    T_su2 = matrix_su2(epsilon)
+    # initialise to identity, need complex numbers from now
+    R = np.identity(3, dtype='complex128')
+    S = np.identity(3, dtype='complex128')
+    T = np.identity(3, dtype='complex128')
+    # upper
+    R[:2,:2] = R_su2
+    # edges
+    S[0:3:2, 0:3:2] = S_su2
+    # lower
+    T[1:,1:] = T_su2
+    # create final matrix
+    X = np.dot(R, S)
+    return np.dot(X, T) 
+
+### Create set of SU(3) matrices
+### Needs to be large enough to cover SU(3)
+def create_su3_set(epsilon = 0.2, tot = 1000):
+    matrices = []
+    for i in range(tot):
+        X = matrix_su3(epsilon)
+        matrices.append(X)
+        matrices.append(X.conj().T)
+    return matrices
 
 
 ### LATTICE CLASS
@@ -345,7 +394,7 @@ class lattice():
     ### If U not passed, lattice of identities returned.
     ### Class to avoid use of incorrect initialization and passing a lot of variables
     #@numba.njit
-    def __init__(self, Nt, Nx, Ny, Nz, beta, u0, U=None, SP=None):
+    def __init__(self, Nt, Nx, Ny, Nz, beta, u0, U=None):
         if None == U:
             # initialize to identities
             U = [[[[[np.identity(3, dtype='complex128') for mu in range(4)] for z in range(Nz)] for y in range(Ny)] for x in range(Nx)] for t in range(Nt)]
@@ -357,14 +406,6 @@ class lattice():
         self.Ny = Ny
         self.Nz = Nz
         self.Nt = Nt
-
-        ### Create a separate matrix for spacetime deformations
-        if None == SP:
-            SP=np.zeros((14, 14, 14, 14, 4))
-        self.SP = np.array(SP)
-
-
-
         
     ### calculate link imposing periodic boundary conditions
     def periodic_link(self, txyz, direction):
@@ -513,15 +554,6 @@ class lattice():
     ### Difference of action at a point for fixed staple. Gets link, updated link, and staple A.
     def deltaS(self, link, updated_link, staple):
         return (-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link - link), staple)))
-    
-    ### Finds the Einstein - Hilbert action
-    def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z):
-        ###NO IDEA IF BOTTOM LINE IS CORRECT AT ALL
-        Lqcd=(-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link), staple)))  ##From above. 
-        approx=Relative_tools.first_approx_tool(SP, t, x, y, z)
-        Action=(1-approx)*Lqcd
-        Jack=Relative_tools.inv_Jack(SPrime, t, x, y, z)
-        return 1
 
 
     #@numba.njit
@@ -557,10 +589,9 @@ class lattice():
     ###   hits per sweep,
     ###   action-> W for Wilson or WR for Wilson with rectangles
     ###            W_T or WR_T for tadpole improvement
-    def markov_chain_sweep(self, epsilon, Ncfg, Nfluc, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
+    def markov_chain_sweep(self, Ncfg, matrices, initial_cfg=0, save_name='', Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
         ratio_accept = 0.
         matrices_length = len(matrices)
-        SP_prime=self.SP
         if save_name:
             output = 'logs/' + save_name + '/link_' + save_name + '_'
         
@@ -568,133 +599,65 @@ class lattice():
         if  action[-1:] == 'T':
             plaquette = []
             u0_values = [self.u0]
-        
-        
-        ### loop through all space time to thermalize the lattice with QCD before starting spacetime
-        for i in range(Ncfg - 1):
-            print('starting sweep ' + str(i+initial_cfg) + ':  ' + str(datetime.datetime.now()))
-            if i < thermal:
-                ### loop through spacetime dimensions
-                for t in range(self.Nt):
-                    for x in range(self.Nx):
-                        for y in range(self.Ny):
-                            for z in range(self.Nz):
-                                ### loop through directions
-                                for mu in range(4):
-                                    ### check which staple to use
-                                    if (action == 'W') or (action == 'W_T'):
-                                        A =  self.dS_staple(t, x, y, z, mu) #standard Wilson or tadpole improved
-                                        #(only difference is in save name of lattice since tadpole improvement is 
-                                        #considered when calculating staple)
-                                    elif (action == 'WR') or (action == 'WR_T'):
-                                        A = self.dS_staple_rectangle(t, x, y, z, mu) #improved action with rectangles
-                                        #Tadpole improve, else only half of O(a^2) error is cancelled.
-                                    else:
-                                        print("Error: Wrong action name or not implemented.")
-                                        sys.exit()
-                                    ### loop through hits
-                                    for j in range( Nhits ):
-                                        ### get a random SU(3) matrix
-                                        r = np.random.randint(0, matrices_length) 
-                                        matrix = matrices[r] 
-                                        ### create U'
-                                        Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
-                                        ### calculate staple
-                                        dS = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
-                                        ### check if U' accepted
-                                        if (np.exp(-1. * dS) > np.random.uniform(0, 1)):
-                                            self.U[t, x, y, z, mu, :, :] = Uprime
-                                            ratio_accept += 1
-                ### Update u0. For better performance, skip every Nu0_step cfgs and append plaquettes to array. 
-                ### When the array reaches size Nu0_avg, average to update u0.
-                ### Wait 10 iterations from warm start.
-                if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
-                    plaquette.append( self.average_plaquette() )
-                    if len(plaquette) == Nu0_avg:
-                        u0_prime = ( np.mean( plaquette ) )**0.25
-                        print("u0 for lattice ", self.beta, " to be updated. Previous: ", self.u0, ". New: ", u0_prime)
-                        self.u0 = u0_prime           #update u0
-                        u0_values.append( u0_prime ) #create array of u0 values
-                        plaquette = []               #clear array
-
-                ### save if name given
-                if (save_name):
-                    idx = int(i) + initial_cfg
-                    #print(int( idx ))
-                    output_idx = output + str(int( idx ))
-                    file_out = open(output_idx, 'wb')
-                    np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
-                    sys.stdout.flush()
-
 
         ### loop through number of configurations to be generated
-            else:
+        for i in range(Ncfg - 1):
+            print('starting sweep ' + str(i+initial_cfg) + ':  ' + str(datetime.datetime.now()))
+
             ### loop through spacetime dimensions
-                for t in range(self.Nt):
-                    for x in range(self.Nx):
-                        for y in range(self.Ny):
-                            for z in range(self.Nz):
-                                ### Spacetime part
-                                # Generate a spacetime grid distortion 
-                                SP_prime[t, x, y, z, :]=self.SP[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
-                                ### loop through directions
-                                for mu in range(4):
-                                    ### check which staple to use
-                                    if (action == 'W') or (action == 'W_T'):
-                                        A =  self.dS_staple(t, x, y, z, mu) #standard Wilson or tadpole improved
-                                        #(only difference is in save name of lattice since tadpole improvement is 
-                                        #considered when calculating staple)
-                                    elif (action == 'WR') or (action == 'WR_T'):
-                                        A = self.dS_staple_rectangle(t, x, y, z, mu) #improved action with rectangles
-                                        #Tadpole improve, else only half of O(a^2) error is cancelled.
-                                    else:
-                                        print("Error: Wrong action name or not implemented.")
-                                        sys.exit()
-                                    ### loop through hits
-                                    for j in range( Nhits ):
-                                        ### get a random SU(3) matrix
-                                        r = np.random.randint(0, matrices_length)
-                                        matrix = matrices[r] 
-                                        ### create U' and primed spacetime point
-                                        Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
-                                        if t >= border and t <= len(self.SP)-border:
-                                            if x >= border and x <= len(self.SP)-border:
-                                                if y >= border and y <= len(self.SP)-border:
-                                                    if z >= border and z <= len(self.SP)-border:
-                                                        dEH = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z)
-                                        else:
-                                            dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
-                                        if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
-                                            self.U[t, x, y, z, mu, :, :] = Uprime
-                                            self.SP[t, x, y, z, :]=SP_prime[t, x, y, z, :]
-                                            ratio_accept += 1
-                                        else:
-                                            print('You are going to the right direction')
+            for t in range(self.Nt):
+                for x in range(self.Nx):
+                    for y in range(self.Ny):
+                        for z in range(self.Nz):
+                            ### loop through directions
+                            for mu in range(4):
+                                ### check which staple to use
+                                if (action == 'W') or (action == 'W_T'):
+                                    A =  self.dS_staple(t, x, y, z, mu) #standard Wilson or tadpole improved
+                                    #(only difference is in save name of lattice since tadpole improvement is 
+                                    #considered when calculating staple)
+                                elif (action == 'WR') or (action == 'WR_T'):
+                                    A = self.dS_staple_rectangle(t, x, y, z, mu) #improved action with rectangles
+                                    #Tadpole improve, else only half of O(a^2) error is cancelled.
+                                else:
+                                    print("Error: Wrong action name or not implemented.")
+                                    sys.exit()
+                                ### loop through hits
+                                for j in range( Nhits ):
+                                    ### get a random SU(3) matrix
+                                    r = np.random.randint(0, matrices_length) 
+                                    matrix = matrices[r] 
+                                    ### create U'
+                                    Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
+                                    ### calculate staple
+                                    dS = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
+                                    ### check if U' accepted
+                                    if (np.exp(-1. * dS) > np.random.uniform(0, 1)):
+                                        self.U[t, x, y, z, mu, :, :] = Uprime
+                                        ratio_accept += 1
+                                        
 
-                                                 
-                                
+            ### Update u0. For better performance, skip every Nu0_step cfgs and append plaquettes to array. 
+            ### When the array reaches size Nu0_avg, average to update u0.
+            ### Wait 10 iterations from warm start.
+            if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
+                plaquette.append( self.average_plaquette() )
+                if len(plaquette) == Nu0_avg:
+                    u0_prime = ( np.mean( plaquette ) )**0.25
+                    print("u0 for lattice ", self.beta, " to be updated. Previous: ", self.u0, ". New: ", u0_prime)
+                    self.u0 = u0_prime           #update u0
+                    u0_values.append( u0_prime ) #create array of u0 values
+                    plaquette = []               #clear array
 
-                ### Update u0. For better performance, skip every Nu0_step cfgs and append plaquettes to array. 
-                ### When the array reaches size Nu0_avg, average to update u0.
-                ### Wait 10 iterations from warm start.
-                if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
-                    plaquette.append( self.average_plaquette() )
-                    if len(plaquette) == Nu0_avg:
-                        u0_prime = ( np.mean( plaquette ) )**0.25
-                        print("u0 for lattice ", self.beta, " to be updated. Previous: ", self.u0, ". New: ", u0_prime)
-                        self.u0 = u0_prime           #update u0
-                        u0_values.append( u0_prime ) #create array of u0 values
-                        plaquette = []               #clear array
-
-                ### save if name given
-                if (save_name):
-                    idx = int(i) + initial_cfg
-                    #print(int( idx ))
-                    output_idx = output + str(int( idx ))
-                    file_out = open(output_idx, 'wb')
-                    np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
-                    sys.stdout.flush()
-            
+            ### save if name given
+            if (save_name):
+                idx = int(i) + initial_cfg
+                #print(int( idx ))
+                output_idx = output + str(int( idx ))
+                file_out = open(output_idx, 'wb')
+                np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
+                sys.stdout.flush()
+        
         ratio_accept = float(ratio_accept) / Ncfg / self.Nx / self.Ny / self.Nz / self.Nt / 4. / Nhits
         if action[-1:] == 'T':
             print("u0 progression: ", u0_values)

@@ -23,23 +23,25 @@ import datetime
 # epsilon = 0.24      # how "far" away from identity the updates will be
 # threads = 4       # threads used in multiprocessing
 
-Nt = 14
-Nx = 14
-Ny = 14
-Nz = 14
+Nt = 3
+Nx = 3
+Ny = 3
+Nz = 3
 Ncfg = 1000          # number of lattices to generate
 action = 'W'    # W = Wilson, Wilson with rectangle improvements, W_T and WR_T = With tadpole improvement
 betas = [5.7]      # betas to be generated, beta = 6/g^2
-startcfg = 1    # warm start (0) or existing cfg number to start the Markov chain
+startcfg = 0    # warm start (0) or existing cfg number to start the Markov chain
 Nhits = 50         # hits between each update
 Nmatrix = 10000    # number of random SU(3) matrices to be used for updates
 epsilon = 0.20      # how "far" away from identity the updates will be
-threads = 4 
+threads = 1 
 
 Nu0_step = 1       # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1        # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
-
+Nfluc=1000         # Number of disturbances
+thermal=5         # Number of configurations before starting the general relativity part
+border=0            # The border of spacetime lattice that will equal to 0
 
 # ### initialize multiprocessing
 
@@ -57,6 +59,6 @@ if __name__ == '__main__':
     
     p = Pool(threads)
     # ### function to be calculated needs to use functools to work with map
-    func = functools.partial(generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+    func = functools.partial(generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
     p.map(func, betas) # call multiprocessing map function
     p.terminate()      # terminate multiprocessing
