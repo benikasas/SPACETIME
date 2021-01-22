@@ -360,7 +360,7 @@ class lattice():
 
         ### Create a separate matrix for spacetime deformations
         if None == SP:
-            SP=np.zeros((14, 14, 14, 14, 4))
+            SP=np.zeros((Nt, Nx, Ny, Nz, 4))
         self.SP = np.array(SP)
 
 
@@ -517,7 +517,7 @@ class lattice():
     ### Finds the Einstein - Hilbert action
     def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z):
         ###NO IDEA IF BOTTOM LINE IS CORRECT AT ALL
-        Lqcd=(-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link), staple)))  ##From above. 
+        Lqcd=(-self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ##From above. 
         approx=Relative_tools.first_approx_tool(SP, t, x, y, z)
         Action=(1-approx)*Lqcd
         Jack=Relative_tools.inv_Jack(SPrime, t, x, y, z)
@@ -658,10 +658,10 @@ class lattice():
                                         matrix = matrices[r] 
                                         ### create U' and primed spacetime point
                                         Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
-                                        if t >= border and t <= len(self.SP)-border:
-                                            if x >= border and x <= len(self.SP)-border:
-                                                if y >= border and y <= len(self.SP)-border:
-                                                    if z >= border and z <= len(self.SP)-border:
+                                        if t >= border and t < (len(self.SP)-border):
+                                            if x >= border and x < (len(self.SP)-border):
+                                                if y >= border and y < (len(self.SP)-border):
+                                                    if z >= border and z < (len(self.SP)-border):
                                                         dEH = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z)
                                         else:
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
@@ -671,13 +671,6 @@ class lattice():
                                             ratio_accept += 1
                                         else:
                                             print('You are going to the right direction')
-
-                                                 
-                                
-
-                ### Update u0. For better performance, skip every Nu0_step cfgs and append plaquettes to array. 
-                ### When the array reaches size Nu0_avg, average to update u0.
-                ### Wait 10 iterations from warm start.
                 if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
                     plaquette.append( self.average_plaquette() )
                     if len(plaquette) == Nu0_avg:
