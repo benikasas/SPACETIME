@@ -151,9 +151,37 @@ def h_matrix_collectinator(SPrime, t, x, y, z):
 
 def Ricci(SPrime, t, x, y, z):
     h_alphabeta, h_alpha, h_og = h_matrix_collectinator(SPrime, t, x, y, z)
+    h_alphabeta=np.array(h_alphabeta)
+    h_alpha=np.array(h_alpha)
+    h_og=np.array(h_og)
+    R_alphabeta=0
+    R_alpha=0
+    R_og=0
+    R_2_betabeta=0
+    R_betabeta=0
+    R_og_betabeta=0
+    Ricci_scalar=0
+    for alpha in range(4):
+        for beta in range(4):
+            for i in range(4):
+                for j in range(4):
+                    R_alphabeta=R_alphabeta+h_alphabeta[alpha, beta, i, j]
+    for alpha in range(4):
+        for i in range(4):
+            for j in range(4):
+                R_alpha=R_alpha+h_alpha[alpha, i, j]
     for i in range(4):
         for j in range(4):
-            print(i,' ', j, 'th term is: ', h_alphabeta[i][i, i])
+            R_og=R_og+h_og[i, j]
+    for alpha in range(4):
+        R_2_betabeta=R_2_betabeta+np.trace(h_alphabeta[alpha, alpha])
+        print(R_2_betabeta)
+    for alpha in range(4):
+        R_betabeta=R_betabeta+np.trace(h_alpha[alpha])
+        print(R_betabeta)
+    R_og_betabeta=np.trace(h_og)
+    Ricci_scalar=R_alphabeta-2*R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta
+    print(Ricci_scalar)
     return 1
 
 def Plaq_approx():
