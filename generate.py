@@ -3,11 +3,12 @@
 from __future__ import print_function
 import os, sys, string
 import numpy as np
-from gauge_latticeqcd import *
+# from gauge_latticeqcd import *
 import lattice_collection as lc
 from multiprocessing import Pool
 import functools
 import datetime
+import gauge_latticeqcd
 
 ### settings
 # Nt = 8
@@ -45,6 +46,7 @@ border=2            # The border of spacetime lattice that will equal to 0
 
 # ### initialize multiprocessing
 
+
 if __name__ == '__main__':
     ### generate lattices
     for b in betas:
@@ -55,10 +57,13 @@ if __name__ == '__main__':
             os.mkdir(dir_name) 
         else:
             print("Directory exists for beta ", b)
+    aaa=gauge_latticeqcd.generatec(beta=5.7, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+
+
 
     
-    p = Pool(threads)
-    # ### function to be calculated needs to use functools to work with map
-    func = functools.partial(generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
-    p.map(func, betas) # call multiprocessing map function
-    p.terminate()      # terminate multiprocessing
+#     p = Pool(threads)
+#     # ### function to be calculated needs to use functools to work with map
+#     func = functools.partial(generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+#     p.map(func, betas) # call multiprocessing map function
+#     p.terminate()      # terminate multiprocessing

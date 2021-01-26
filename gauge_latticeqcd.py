@@ -301,7 +301,7 @@ def fn_F_munu(U, t, x, y, z, mu, nu):
 
 #-------------Generation code -------------------
 ### function called by multiprocessor in generate script
-def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
+def generatec(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
     
     ### loop over (t,x,y,z) and mu and set initial collection of links
     ### Either:
