@@ -81,12 +81,11 @@ def first_approx_tool(SP, t, x, y, z):
         diff_y=SP_y-SP_og
         diff_z=SP_z-SP_og     
         total_diff=diff_t+diff_x+diff_y+diff_z
+        #total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]
         total_sum=0
         for i in range(len(total_diff)):
             total_sum=total_sum+total_diff[i]
-            print(i, ' term: ', total_diff[i])
-            print('Total sum after ', i, ' ', total_sum)
-        return 1
+        return total_sum
 
 ### First order approximation of the Jacobian inverse
 def inv_Jack(SPrime, t, x, y, z):
@@ -102,3 +101,57 @@ def inv_Jack(SPrime, t, x, y, z):
     jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
     jack=np.linalg.inv(jack)
     return jack
+
+
+def h_matrix_producinator(SPrime, coords):
+    t=coords[0]
+    x=coords[1]
+    y=coords[2]
+    z=coords[3]
+    jack=inv_Jack(SPrime, t, x, y, z)
+    h_matrix=np.zeros((4, 4))
+    h_matrix[0, 0]=jack[0][0]*jack[0][0]+jack[0][1]*jack[0][1]+jack[0][2]*jack[0][2]+jack[0][3]*jack[0][3]-1
+    h_matrix[1, 1]=jack[1][0]*jack[1][0]+jack[1][1]*jack[1][1]+jack[1][2]*jack[1][2]+jack[1][3]*jack[1][3]-1
+    h_matrix[2, 2]=jack[2][0]*jack[2][0]+jack[2][1]*jack[2][1]+jack[2][2]*jack[2][2]+jack[2][3]*jack[2][3]-1
+    h_matrix[3, 3]=jack[3][0]*jack[3][0]+jack[3][1]*jack[3][1]+jack[3][2]*jack[3][2]+jack[3][3]*jack[3][3]-1
+
+    h_matrix[0, 1]=jack[0][0]*jack[1][0]+jack[0][1]*jack[1][1]+jack[0][2]*jack[1][2]+jack[0][3]*jack[1][3]
+    h_matrix[0, 2]=jack[0][0]*jack[2][0]+jack[0][1]*jack[2][1]+jack[0][2]*jack[2][2]+jack[0][3]*jack[2][3]
+    h_matrix[0, 3]=jack[0][0]*jack[3][0]+jack[0][1]*jack[3][1]+jack[0][2]*jack[3][2]+jack[0][3]*jack[3][3]
+    h_matrix[1, 0]=h_matrix[0, 1]
+    h_matrix[2, 0]=h_matrix[0, 2]
+    h_matrix[3, 0]=h_matrix[0, 3]
+
+
+    h_matrix[1, 2]=jack[1][0]*jack[2][0]+jack[1][1]*jack[2][1]+jack[1][2]*jack[2][2]+jack[1][3]*jack[2][3]
+    h_matrix[1, 3]=jack[1][0]*jack[3][0]+jack[1][1]*jack[3][1]+jack[1][2]*jack[3][2]+jack[1][3]*jack[3][3]
+    h_matrix[2, 1]=h_matrix[1, 2]
+    h_matrix[3, 1]=h_matrix[1, 3]
+
+    h_matrix[2, 3]=jack[2][0]*jack[3][0]+jack[2][1]*jack[3][1]+jack[2][2]*jack[3][2]+jack[2][3]*jack[3][3]
+    h_matrix[3, 2]=h_matrix[2, 3]
+    return h_matrix
+
+def h_matrix_collectinator(SPrime, t, x, y, z):
+    h_alphabeta=np.zeros((4, 4))
+    h_alpha=np.zeros(4)
+    coords=[t, x, y, z]
+    for alpha in range(4):
+        for beta in range(4):
+            coords[alpha]=+1
+            coords[beta]+=1
+            h_alphabeta[alpha][beta]=h_matrix_producinator(SPrime, coords)
+            coords[alpha]-=1
+            coords[beta]-=1
+        coords[alpha]+=1
+        h_alpha[alpha]=h_matrix_producinator(SPrime, coords)
+        coords[alpha]-=1
+    h_og=h_matrix_producinator(SPrime, x, y, z)
+    return h_alphabeta, h_alpha, h_og
+
+def Ricci(SPrime, t, x, y, z):
+    h_alphabeta, h_alpha, h_og = h_matrix_collectinator(SPrime, t, x, y, z)
+    return 1
+
+def Plaq_approx():
+    return 1

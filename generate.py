@@ -23,10 +23,10 @@ import datetime
 # epsilon = 0.24      # how "far" away from identity the updates will be
 # threads = 4       # threads used in multiprocessing
 
-Nt = 3
-Nx = 3
-Ny = 3
-Nz = 3
+Nt = 5
+Nx = 5
+Ny = 5
+Nz = 5
 Ncfg = 1000          
 action = 'W'    
 betas = [5.7]      
@@ -41,7 +41,7 @@ Nu0_avg = 1        # if tadpole improving, number of u0 values to average togeth
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
 Nfluc=1000         # Number of disturbances
 thermal=5         # Number of configurations before starting the general relativity part
-border=1            # The border of spacetime lattice that will equal to 0
+border=2            # The border of spacetime lattice that will equal to 0
 
 # ### initialize multiprocessing
 
