@@ -133,8 +133,8 @@ def h_matrix_producinator(SPrime, coords):
     return h_matrix
 
 def h_matrix_collectinator(SPrime, t, x, y, z):
-    h_alphabeta=np.zeros((4, 4))
-    h_alpha=np.zeros(4)
+    h_alphabeta=[[np.identity(4) for alph in range(4)] for beth in range(4)]
+    h_alpha=[np.identity(4) for alph in range(4)]
     coords=[t, x, y, z]
     for alpha in range(4):
         for beta in range(4):
@@ -146,11 +146,14 @@ def h_matrix_collectinator(SPrime, t, x, y, z):
         coords[alpha]+=1
         h_alpha[alpha]=h_matrix_producinator(SPrime, coords)
         coords[alpha]-=1
-    h_og=h_matrix_producinator(SPrime, x, y, z)
+    h_og=h_matrix_producinator(SPrime, coords)
     return h_alphabeta, h_alpha, h_og
 
 def Ricci(SPrime, t, x, y, z):
     h_alphabeta, h_alpha, h_og = h_matrix_collectinator(SPrime, t, x, y, z)
+    for i in range(4):
+        for j in range(4):
+            print(i,' ', j, 'th term is: ', h_alphabeta[i][i, i])
     return 1
 
 def Plaq_approx():

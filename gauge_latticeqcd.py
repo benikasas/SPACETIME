@@ -630,6 +630,7 @@ class lattice():
         ### loop through number of configurations to be generated
             else:
             ### loop through spacetime dimensions
+                print('Lets get this ready')
                 for t in range(self.Nt):
                     for x in range(self.Nx):
                         for y in range(self.Ny):
@@ -668,8 +669,8 @@ class lattice():
                                             self.U[t, x, y, z, mu, :, :] = Uprime
                                             self.SP[t, x, y, z, :]=SP_prime[t, x, y, z, :]
                                             ratio_accept += 1
-                                        else:
-                                            print('You are going to the right direction')
+                                        # else:
+                                        #     print('You are going to the right direction')
                 if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
                     plaquette.append( self.average_plaquette() )
                     if len(plaquette) == Nu0_avg:
