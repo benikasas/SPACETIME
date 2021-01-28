@@ -3,7 +3,7 @@
 from __future__ import print_function
 import os, sys, string
 import numpy as np
-# from gauge_latticeqcd import *
+# from gauge_latticeqcd import *        ##I don't think its necessary
 import lattice_collection as lc
 from multiprocessing import Pool
 import functools
@@ -57,8 +57,7 @@ if __name__ == '__main__':
             os.mkdir(dir_name) 
         else:
             print("Directory exists for beta ", b)
-    aaa=gauge_latticeqcd.generatec(beta=5.7, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
-
+    aaa=gauge_latticeqcd.generate(beta=betas[0], u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
 
 
     

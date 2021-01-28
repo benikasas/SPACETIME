@@ -301,7 +301,7 @@ def fn_F_munu(U, t, x, y, z, mu, nu):
 
 #-------------Generation code -------------------
 ### function called by multiprocessor in generate script
-def generatec(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
+def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
     
     ### loop over (t,x,y,z) and mu and set initial collection of links
     ### Either:
@@ -330,6 +330,10 @@ def generatec(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, 
         #print(action)
         U = lc.fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, startcfg, "./logs/")
         U = lattice(Nt, Nx, Ny, Nz, beta, u0, U)
+        
+        
+        
+        ########if startcfg>thermal:
     
     print('Continuing from cfg: ', startcfg)
     print('... generating lattices')
@@ -521,7 +525,7 @@ class lattice():
         approx=Relative_tools.first_approx_tool(SP, t, x, y, z)
         Action=(1-approx)*Lqcd
         Ricci=Relative_tools.Ricci(SPrime, t, x, y, z)
-        return 1
+        return 1, Ricci
 
 
     #@numba.njit
@@ -560,9 +564,10 @@ class lattice():
     def markov_chain_sweep(self, epsilon, Ncfg, Nfluc, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
         ratio_accept = 0.
         matrices_length = len(matrices)
-        SP_prime=self.SP
+        ################R_matrix=np.zeros(self.Nx, self.Ny)
         if save_name:
             output = 'logs/' + save_name + '/link_' + save_name + '_'
+            ##########################
         
         #if tadpole improving, initialize list of u0 values
         if  action[-1:] == 'T':
@@ -627,7 +632,7 @@ class lattice():
                     sys.stdout.flush()
 
 
-        ### loop through number of configurations to be generated
+        ### Same like above but with spacetime deformations and Einstein - Hilbert action
             else:
             ### loop through spacetime dimensions
                 print('Lets get this ready')
@@ -635,8 +640,8 @@ class lattice():
                     for x in range(self.Nx):
                         for y in range(self.Ny):
                             for z in range(self.Nz):
-                                ### Spacetime part
-                                # Generate a spacetime grid distortion 
+                                # Generate a spacetime grid distortion
+                                SP_prime=self.SP 
                                 SP_prime[t, x, y, z, :]=self.SP[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
                                 ### loop through directions
                                 for mu in range(4):
@@ -662,7 +667,8 @@ class lattice():
                                             if x >= border and x < (len(self.SP)-border):
                                                 if y >= border and y < (len(self.SP)-border):
                                                     if z >= border and z < (len(self.SP)-border):
-                                                        dEH = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z)
+                                                        dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z)
+                                                    R_matrix[x, y]=Ricci
                                         else:
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
@@ -688,6 +694,13 @@ class lattice():
                     file_out = open(output_idx, 'wb')
                     np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
                     sys.stdout.flush()
+                    file_out=open()
+                    
+                    with open('outfile.txt','wb') as f:
+                        for line in mat:
+                            np.savetxt(f, line, fmt='%.2f')
+
+
             
         ratio_accept = float(ratio_accept) / Ncfg / self.Nx / self.Ny / self.Nz / self.Nt / 4. / Nhits
         if action[-1:] == 'T':

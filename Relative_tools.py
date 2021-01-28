@@ -64,8 +64,9 @@ def create_su3_set(epsilon = 0.2, tot = 1000):
 ## Need to adjust the magnitude of epsilon
 def Delta_gen(epsilon):
     Delta=[0., 0., 0., 0.,]
+    magnit=epsilon/1000     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
-        Delta[i]=np.random.uniform(-epsilon, epsilon)
+        Delta[i]=np.random.uniform(-magnit, magnit)
     return Delta
 
 ## First order approximation in a direction
@@ -175,14 +176,11 @@ def Ricci(SPrime, t, x, y, z):
             R_og=R_og+h_og[i, j]
     for alpha in range(4):
         R_2_betabeta=R_2_betabeta+np.trace(h_alphabeta[alpha, alpha])
-        print(R_2_betabeta)
     for alpha in range(4):
         R_betabeta=R_betabeta+np.trace(h_alpha[alpha])
-        print(R_betabeta)
     R_og_betabeta=np.trace(h_og)
     Ricci_scalar=R_alphabeta-2*R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta
-    print(Ricci_scalar)
-    return 1
+    return Ricci_scalar
 
 def Plaq_approx():
     return 1
