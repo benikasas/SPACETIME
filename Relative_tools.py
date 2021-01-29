@@ -64,7 +64,7 @@ def create_su3_set(epsilon = 0.2, tot = 1000):
 ## Need to adjust the magnitude of epsilon
 def Delta_gen(epsilon):
     Delta=[0., 0., 0., 0.,]
-    magnit=epsilon/1000     ### Specify the magnitude of deformations
+    magnit=epsilon/10000     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
         Delta[i]=np.random.uniform(-magnit, magnit)
     return Delta
@@ -100,6 +100,7 @@ def inv_Jack(SPrime, t, x, y, z):
     jack[1][:]=np.add(jack[1][:], (SP_x-SP_og))
     jack[2][:]=np.add(jack[2][:], (SP_y-SP_og))
     jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
+    jack=np.transpose(jack)
     jack=np.linalg.inv(jack)
     return jack
 
@@ -111,25 +112,25 @@ def h_matrix_producinator(SPrime, coords):
     z=coords[3]
     jack=inv_Jack(SPrime, t, x, y, z)
     h_matrix=np.zeros((4, 4))
-    h_matrix[0, 0]=jack[0][0]*jack[0][0]+jack[0][1]*jack[0][1]+jack[0][2]*jack[0][2]+jack[0][3]*jack[0][3]-1
-    h_matrix[1, 1]=jack[1][0]*jack[1][0]+jack[1][1]*jack[1][1]+jack[1][2]*jack[1][2]+jack[1][3]*jack[1][3]-1
-    h_matrix[2, 2]=jack[2][0]*jack[2][0]+jack[2][1]*jack[2][1]+jack[2][2]*jack[2][2]+jack[2][3]*jack[2][3]-1
-    h_matrix[3, 3]=jack[3][0]*jack[3][0]+jack[3][1]*jack[3][1]+jack[3][2]*jack[3][2]+jack[3][3]*jack[3][3]-1
+    h_matrix[0, 0]=jack[0][0]*jack[0][0]+jack[1][0]*jack[1][0]+jack[2][0]*jack[2][0]+jack[3][0]*jack[3][0]-1
+    h_matrix[1, 1]=jack[0][1]*jack[0][1]+jack[1][1]*jack[1][1]+jack[2][1]*jack[2][1]+jack[3][1]*jack[3][1]-1
+    h_matrix[2, 2]=jack[0][2]*jack[0][2]+jack[1][2]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][2]*jack[3][2]-1
+    h_matrix[3, 3]=jack[0][3]*jack[0][3]+jack[1][3]*jack[1][3]+jack[2][3]*jack[2][3]+jack[3][3]*jack[3][3]-1
 
-    h_matrix[0, 1]=jack[0][0]*jack[1][0]+jack[0][1]*jack[1][1]+jack[0][2]*jack[1][2]+jack[0][3]*jack[1][3]
-    h_matrix[0, 2]=jack[0][0]*jack[2][0]+jack[0][1]*jack[2][1]+jack[0][2]*jack[2][2]+jack[0][3]*jack[2][3]
-    h_matrix[0, 3]=jack[0][0]*jack[3][0]+jack[0][1]*jack[3][1]+jack[0][2]*jack[3][2]+jack[0][3]*jack[3][3]
+    h_matrix[0, 1]=jack[0][0]*jack[0][1]+jack[1][0]*jack[1][1]+jack[2][1]*jack[2][1]+jack[3][0]*jack[3][1]
+    h_matrix[0, 2]=jack[0][0]*jack[0][2]+jack[1][0]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][0]*jack[3][2]
+    h_matrix[0, 3]=jack[0][0]*jack[0][3]+jack[1][0]*jack[1][3]+jack[2][3]*jack[2][3]+jack[3][0]*jack[3][3]
     h_matrix[1, 0]=h_matrix[0, 1]
     h_matrix[2, 0]=h_matrix[0, 2]
     h_matrix[3, 0]=h_matrix[0, 3]
 
 
-    h_matrix[1, 2]=jack[1][0]*jack[2][0]+jack[1][1]*jack[2][1]+jack[1][2]*jack[2][2]+jack[1][3]*jack[2][3]
-    h_matrix[1, 3]=jack[1][0]*jack[3][0]+jack[1][1]*jack[3][1]+jack[1][2]*jack[3][2]+jack[1][3]*jack[3][3]
+    h_matrix[1, 2]=jack[0][1]*jack[0][2]+jack[1][1]*jack[1][2]+jack[2][1]*jack[2][2]+jack[3][1]*jack[3][2]
+    h_matrix[1, 3]=jack[0][1]*jack[0][3]+jack[1][1]*jack[1][3]+jack[2][1]*jack[2][3]+jack[3][1]*jack[3][3]
     h_matrix[2, 1]=h_matrix[1, 2]
     h_matrix[3, 1]=h_matrix[1, 3]
 
-    h_matrix[2, 3]=jack[2][0]*jack[3][0]+jack[2][1]*jack[3][1]+jack[2][2]*jack[3][2]+jack[2][3]*jack[3][3]
+    h_matrix[2, 3]=jack[0][2]*jack[0][3]+jack[1][2]*jack[1][3]+jack[2][2]*jack[2][3]+jack[3][2]*jack[3][3]
     h_matrix[3, 2]=h_matrix[2, 3]
     return h_matrix
 
@@ -144,7 +145,7 @@ def h_matrix_collectinator(SPrime, t, x, y, z):
             h_alphabeta[alpha][beta]=h_matrix_producinator(SPrime, coords)
             coords[alpha]-=1
             coords[beta]-=1
-        coords[alpha]+=1
+        coords[alpha]+=1        ###I could remove the two redundant lines
         h_alpha[alpha]=h_matrix_producinator(SPrime, coords)
         coords[alpha]-=1
     h_og=h_matrix_producinator(SPrime, coords)

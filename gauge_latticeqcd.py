@@ -520,12 +520,12 @@ class lattice():
     
     ### Finds the Einstein - Hilbert action
     def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z):
-        ###NO IDEA IF BOTTOM LINE IS CORRECT AT ALL
-        Lqcd=(-self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ##From above. 
+        Lqcd=(-self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### FIX THIS PART 
         approx=Relative_tools.first_approx_tool(SP, t, x, y, z)
         Action=(1-approx)*Lqcd
         Ricci=Relative_tools.Ricci(SPrime, t, x, y, z)
-        return 1, Ricci
+        print(Ricci)
+        return approx, Ricci
 
 
     #@numba.njit
@@ -566,7 +566,8 @@ class lattice():
         matrices_length = len(matrices)
         ################R_matrix=np.zeros(self.Nx, self.Ny)
         if save_name:
-            output = 'logs/' + save_name + '/link_' + save_name + '_'
+            output_1 = 'logs/' + save_name + '/link_' + save_name + '_'
+            output_2 = 'Deformations/' + save_name + '/link_' + save_name + '_'
             ##########################
         
         #if tadpole improving, initialize list of u0 values
@@ -626,8 +627,8 @@ class lattice():
                 if (save_name):
                     idx = int(i) + initial_cfg
                     #print(int( idx ))
-                    output_idx = output + str(int( idx ))
-                    file_out = open(output_idx, 'wb')
+                    output_idx_1 = output_1 + str(int( idx ))
+                    file_out = open(output_idx_1, 'wb')
                     np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
                     sys.stdout.flush()
 
@@ -642,7 +643,12 @@ class lattice():
                             for z in range(self.Nz):
                                 # Generate a spacetime grid distortion
                                 SP_prime=self.SP 
-                                SP_prime[t, x, y, z, :]=self.SP[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
+                                ### Only add deformations if were inside the border
+                                if t >= border and t < (len(self.SP)-border):
+                                    if x >= border and x < (len(self.SP)-border):
+                                        if y >= border and y < (len(self.SP)-border):
+                                            if z >= border and z < (len(self.SP)-border):
+                                                SP_prime[t, x, y, z, :]=self.SP[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
                                 ### loop through directions
                                 for mu in range(4):
                                     ### check which staple to use
@@ -668,7 +674,7 @@ class lattice():
                                                 if y >= border and y < (len(self.SP)-border):
                                                     if z >= border and z < (len(self.SP)-border):
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z)
-                                                    R_matrix[x, y]=Ricci
+                                                    ############# R_matrix[x, y]=Ricci
                                         else:
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
@@ -690,15 +696,17 @@ class lattice():
                 if (save_name):
                     idx = int(i) + initial_cfg
                     #print(int( idx ))
-                    output_idx = output + str(int( idx ))
-                    file_out = open(output_idx, 'wb')
+                    output_idx_1 = output_1 + str(int( idx ))
+                    file_out = open(output_idx_1, 'wb')
                     np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
                     sys.stdout.flush()
-                    file_out=open()
-                    
-                    with open('outfile.txt','wb') as f:
-                        for line in mat:
-                            np.savetxt(f, line, fmt='%.2f')
+                    output_idx_2 = output_2 + str(int( idx ))
+                    file_out_2=open(output_idx_2, 'wb')
+                    np.save(file_out_2, self.SP)
+                    sys.stdout.flush()
+
+
+                    ############################################################## Set up output files for deformations
 
 
             

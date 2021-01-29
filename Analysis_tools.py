@@ -1,7 +1,7 @@
 import sys, os, string, numba
 import numpy as np
 import pygal
-from generate import betas, Nt, Nx, Ny, Nz, action, epsilon
+from generate import Nt, Nx, Ny, Nz, action, epsilon
 from plaq_v_cfg import Nstart, Nend
 # from plaq_v_cfg import *
 
@@ -15,7 +15,7 @@ from plaq_v_cfg import Nstart, Nend
 ## Settings
 # Nstart = 1
 # Nend = 1790
-beta=betas[0]
+
 
 ## Uses the settings to generate the name for the selected data from relevant file.
 U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
@@ -45,4 +45,10 @@ def statistician():
     
     print('Acceptable value: ', mean_val, ' with standard deviation :', mean_sdev)
 
-value=grapher()
+
+def slicer():
+    in_fold='./Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
+    in_file=in_fold +  + 'link_' + action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_' + str(100)
+    SP_deformations=np.loadtxt(in_file, dtype=float)
+
+# value=slicer()

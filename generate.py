@@ -24,10 +24,10 @@ import gauge_latticeqcd
 # epsilon = 0.24      # how "far" away from identity the updates will be
 # threads = 4       # threads used in multiprocessing
 
-Nt = 5
-Nx = 5
-Ny = 5
-Nz = 5
+Nt = 6
+Nx = 6
+Ny = 6
+Nz = 6
 Ncfg = 1000          
 action = 'W'    
 betas = [5.7]      
@@ -41,7 +41,7 @@ Nu0_step = 1       # if tadpole improving, number of cfgs to skip between calcul
 Nu0_avg = 1        # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
 Nfluc=1000         # Number of disturbances
-thermal=5         # Number of configurations before starting the general relativity part
+thermal=50         # Number of configurations before starting the general relativity part
 border=2            # The border of spacetime lattice that will equal to 0
 
 # ### initialize multiprocessing
@@ -51,12 +51,16 @@ if __name__ == '__main__':
     ### generate lattices
     for b in betas:
         dir_name = 'C:/Users/justi/SPACETIME/C_Code/logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100))
-        
+        dir_name_1 = 'C:/Users/justi/SPACETIME/C_Code/Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100))
         ### create output directory if it does not exist
         if not os.path.exists(dir_name):
-            os.mkdir(dir_name) 
+            os.mkdir(dir_name)
         else:
             print("Directory exists for beta ", b)
+        if not os.path.exists(dir_name_1):
+            os.mkdir(dir_name_1)
+        else:
+            print("Deformation directory exists as well")
     aaa=gauge_latticeqcd.generate(beta=betas[0], u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
 
 
