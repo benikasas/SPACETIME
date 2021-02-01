@@ -64,31 +64,32 @@ def create_su3_set(epsilon = 0.2, tot = 1000):
 ## Need to adjust the magnitude of epsilon
 def Delta_gen(epsilon):
     Delta=[0., 0., 0., 0.,]
-    magnit=epsilon/10000     ### Specify the magnitude of deformations
+    magnit=epsilon/1     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
-        Delta[i]=np.random.uniform(-magnit, magnit)
+        Delta[i]=np.random.uniform(0, magnit) ### Either from -magnitude to magnitude
     return Delta
 
-## First order approximation in a direction
+## First order approximations of spacetime deformations in all directions
 ## Make a for loop in the future
 def first_approx_tool(SP, t, x, y, z):
-        SP_og=SP[t, x, y, z, :]
-        SP_t=SP[t+1, x, y, z, :]
-        SP_x=SP[t, x+1, y, z, :]
-        SP_y=SP[t, x, y+1, z, :]
-        SP_z=SP[t, x, y, z+1, :]        
-        diff_t=SP_t-SP_og
-        diff_x=SP_x-SP_og
-        diff_y=SP_y-SP_og
-        diff_z=SP_z-SP_og     
-        total_diff=diff_t+diff_x+diff_y+diff_z
-        #total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]
-        total_sum=0
-        for i in range(len(total_diff)):
-            total_sum=total_sum+total_diff[i]
-        return total_sum
+    SP_og=SP[t, x, y, z, :]
+    SP_t=SP[t+1, x, y, z, :]
+    SP_x=SP[t, x+1, y, z, :]
+    SP_y=SP[t, x, y+1, z, :]
+    SP_z=SP[t, x, y, z+1, :]        
+    diff_t=SP_t-SP_og
+    diff_x=SP_x-SP_og
+    diff_y=SP_y-SP_og
+    diff_z=SP_z-SP_og     
+    total_diff=diff_t+diff_x+diff_y+diff_z
+    #total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]     ### The paper gives me just the diagonal terms
+    total_sum=0
+    for i in range(len(total_diff)):
+        total_sum=total_sum+total_diff[i]
+    return total_sum
 
-### First order approximation of the Jacobian inverse
+### First order approximation of the Jacobian
+### Could add a for loop as well
 def inv_Jack(SPrime, t, x, y, z):
     SP_og=SPrime[t, x, y, z, :]
     SP_t=SPrime[t+1, x, y, z, :]
@@ -104,7 +105,7 @@ def inv_Jack(SPrime, t, x, y, z):
     jack=np.linalg.inv(jack)
     return jack
 
-
+### Finds the h matrix for the S_Prime matrix with given coordinates
 def h_matrix_producinator(SPrime, coords):
     t=coords[0]
     x=coords[1]
@@ -112,6 +113,12 @@ def h_matrix_producinator(SPrime, coords):
     z=coords[3]
     jack=inv_Jack(SPrime, t, x, y, z)
     h_matrix=np.zeros((4, 4))
+    for alpha in range(4):
+        for beta in range(4):
+            if beta <= alpha:
+                h_matrix[alpha, beta]=jack[alpha][beta]*jack[alpha][beta]+jack[alpha][beta]*jack[alpha][beta]+jack[alpha][beta]*jack[alpha][beta]+jack[alpha][beta]*jack[alpha][beta]
+                h_matrix[beta, alpha]=h_matrix[alpha, beta]
+    print(h_matrix)
     h_matrix[0, 0]=jack[0][0]*jack[0][0]+jack[1][0]*jack[1][0]+jack[2][0]*jack[2][0]+jack[3][0]*jack[3][0]-1
     h_matrix[1, 1]=jack[0][1]*jack[0][1]+jack[1][1]*jack[1][1]+jack[2][1]*jack[2][1]+jack[3][1]*jack[3][1]-1
     h_matrix[2, 2]=jack[0][2]*jack[0][2]+jack[1][2]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][2]*jack[3][2]-1
@@ -132,6 +139,7 @@ def h_matrix_producinator(SPrime, coords):
 
     h_matrix[2, 3]=jack[0][2]*jack[0][3]+jack[1][2]*jack[1][3]+jack[2][2]*jack[2][3]+jack[3][2]*jack[3][3]
     h_matrix[3, 2]=h_matrix[2, 3]
+    print(h_matrix)
     return h_matrix
 
 def h_matrix_collectinator(SPrime, t, x, y, z):
@@ -183,5 +191,18 @@ def Ricci(SPrime, t, x, y, z):
     Ricci_scalar=R_alphabeta-2*R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta
     return Ricci_scalar
 
-def Plaq_approx():
-    return 1
+def Plaq_approx(self, t, x, y, z, matrices):
+    matrices_length = len(matrices)
+    Plaquette_approximations=[0., 0., 0., 0.]
+    coords=[t, x, y, z]
+    for ro in range(4):
+        coords[ro]+=1
+        for mu in range(4):
+            r = np.random.randint(0, matrices_length) 
+            matrix = matrices[r]
+            staple=self.dS_staple(coords[0], coords[1], coords[2], coords[3], mu)
+            link=self.U[coords[0], coords[1], coords[2], coords[3], mu, :, :]
+            updated_link = np.dot(matrix, self.U[coords[0], coords[1], coords[2], coords[3], mu, :, :])
+            Plaquette_approximations[ro]=(-1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link - link), staple)))
+        coords[ro]-=1
+    return Plaquette_approximations

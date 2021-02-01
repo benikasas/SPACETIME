@@ -1,7 +1,7 @@
 import sys, os, string, numba
 import numpy as np
 import pygal
-from generate import Nt, Nx, Ny, Nz, action, epsilon
+from generate import betas, Nt, Nx, Ny, Nz, action, epsilon
 from plaq_v_cfg import Nstart, Nend
 # from plaq_v_cfg import *
 
@@ -45,7 +45,7 @@ def statistician():
     
     print('Acceptable value: ', mean_val, ' with standard deviation :', mean_sdev)
 
-
+### Used to reduce 4D to 3D, and use color grading to find the magnitude of deformations
 def slicer():
     in_fold='./Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
     in_file=in_fold +  + 'link_' + action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_' + str(100)

@@ -517,15 +517,26 @@ class lattice():
     ### Difference of action at a point for fixed staple. Gets link, updated link, and staple A.
     def deltaS(self, link, updated_link, staple):
         return (-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link - link), staple)))
+
     
     ### Finds the Einstein - Hilbert action
-    def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z):
-        Lqcd=(-self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### FIX THIS PART 
-        approx=Relative_tools.first_approx_tool(SP, t, x, y, z)
-        Action=(1-approx)*Lqcd
+    def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
+        Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### FIX THIS PART 
+        Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple))))))
+        approx_nu=Relative_tools.first_approx_tool(SPrime, t, x, y, z)
+        approx_old=Relative_tools.first_approx_tool(SP, t, x, y, z)
         Ricci=Relative_tools.Ricci(SPrime, t, x, y, z)
-        print(Ricci)
-        return approx, Ricci
+        Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices)
+        
+        Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old
+        Action_2=0
+        for alpha in range(4):
+            Action_2=Action_2 + SPrime[t, x, y, z, alpha] + Plaquette_approximations[alpha]
+        Action_2=Action_2 * self.beta
+        Action_3=(1-approx_nu)*Ricci-(1-approx_old)*Ricci
+        Action=Action_1+Action_2+Action_3
+        # print(Ricci)
+        return Action, Ricci
 
 
     #@numba.njit
@@ -644,10 +655,10 @@ class lattice():
                                 # Generate a spacetime grid distortion
                                 SP_prime=self.SP 
                                 ### Only add deformations if were inside the border
-                                if t >= border and t < (len(self.SP)-border):
-                                    if x >= border and x < (len(self.SP)-border):
-                                        if y >= border and y < (len(self.SP)-border):
-                                            if z >= border and z < (len(self.SP)-border):
+                                if t >= border and t < (self.Nt-border):
+                                    if x >= border and x < (self.Nx-border):
+                                        if y >= border and y < (self.Ny-border):
+                                            if z >= border and z < (self.Nz-border):
                                                 SP_prime[t, x, y, z, :]=self.SP[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
                                 ### loop through directions
                                 for mu in range(4):
@@ -673,8 +684,9 @@ class lattice():
                                             if x >= border and x < (len(self.SP)-border):
                                                 if y >= border and y < (len(self.SP)-border):
                                                     if z >= border and z < (len(self.SP)-border):
-                                                        dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z)
+                                                        dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices)
                                                     ############# R_matrix[x, y]=Ricci
+                                       
                                         else:
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
