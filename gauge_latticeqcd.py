@@ -301,7 +301,7 @@ def fn_F_munu(U, t, x, y, z, mu, nu):
 
 #-------------Generation code -------------------
 ### function called by multiprocessor in generate script
-def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
+def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
     
     ### loop over (t,x,y,z) and mu and set initial collection of links
     ### Either:
@@ -310,6 +310,7 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, b
 
     name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
     aa = tool.fn_a( beta ) ### returns lattice spacing calculated for the beta value
+    kappa = Relative_tools.kappa_calc(aa)
 
     print('simulation parameters:')
     print('      action: ' + action)
@@ -338,8 +339,9 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, Nfluc, thermal, b
     print('Continuing from cfg: ', startcfg)
     print('... generating lattices')
     matrices = Relative_tools.create_su3_set(epsilon, Nmatrix)
-    acceptance = U.markov_chain_sweep(epsilon, Ncfg, Nfluc, matrices, startcfg, name, thermal, border, Nhits, action, Nu0_step, Nu0_avg)
+    acceptance = U.markov_chain_sweep(epsilon, Ncfg, matrices, startcfg, name, thermal, border, Nhits, action, Nu0_step, Nu0_avg)
     print("acceptance:", acceptance)
+    return acceptance
 
 
 
@@ -361,7 +363,8 @@ class lattice():
         self.Ny = Ny
         self.Nz = Nz
         self.Nt = Nt
-
+        aa = tool.fn_a( beta ) ### returns lattice spacing calculated for the beta value
+        self.kappa=Relative_tools.kappa_calc(aa)
         ### Create a separate matrix for spacetime deformations
         if None == SP:
             SP=np.zeros((Nt, Nx, Ny, Nz, 4))
@@ -521,21 +524,21 @@ class lattice():
     
     ### Finds the Einstein - Hilbert action
     def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
-        Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### FIX THIS PART 
+        Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### Expanded the difference into two lines
         Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple))))))
         approx_nu=Relative_tools.first_approx_tool(SPrime, t, x, y, z)
         approx_old=Relative_tools.first_approx_tool(SP, t, x, y, z)
         Ricci=Relative_tools.Ricci(SPrime, t, x, y, z)
         Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices)
         
-        Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old
+        Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old      ### 1st line of the action
         Action_2=0
         for alpha in range(4):
             Action_2=Action_2 + SPrime[t, x, y, z, alpha] + Plaquette_approximations[alpha]
         Action_2=Action_2 * self.beta
-        Action_3=(1-approx_nu)*Ricci-(1-approx_old)*Ricci
+        Action_3=(1-approx_nu)*self.kappa*Ricci-(1-approx_old)*Ricci*self.kappa
         Action=Action_1+Action_2+Action_3
-        # print(Ricci)
+        print(Ricci)
         return Action, Ricci
 
 
@@ -572,7 +575,7 @@ class lattice():
     ###   hits per sweep,
     ###   action-> W for Wilson or WR for Wilson with rectangles
     ###            W_T or WR_T for tadpole improvement
-    def markov_chain_sweep(self, epsilon, Ncfg, Nfluc, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
+    def markov_chain_sweep(self, epsilon, Ncfg, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
         ratio_accept = 0.
         matrices_length = len(matrices)
         ################R_matrix=np.zeros(self.Nx, self.Ny)

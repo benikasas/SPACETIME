@@ -40,7 +40,6 @@ threads = 1
 Nu0_step = 1       # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1        # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
-Nfluc=1000         # Number of disturbances
 thermal=1         # Number of configurations before starting the general relativity part
 border=2            # The border of spacetime lattice that will equal to 0
 
@@ -64,7 +63,7 @@ if __name__ == '__main__':
             print("Deformation directory exists as well")
 
     #### Removed the multiprocessing as it barely does anything
-    aaa=gauge_latticeqcd.generate(beta=betas[0], u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+    Acceptance_result=gauge_latticeqcd.generate(beta=betas[0], u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
 
 
     

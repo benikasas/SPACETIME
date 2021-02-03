@@ -3,7 +3,7 @@ from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0
 import tools_v1
 
 
-Nfluc=1000
+
 beta=betas[0]
 lattice_space=tools_v1.fn_a(beta)
 
@@ -60,13 +60,18 @@ def create_su3_set(epsilon = 0.2, tot = 1000):
         matrices.append(X.conj().T)
     return matrices
 
+### Dimensionless Kappa calculator
+def kappa_calc(aa):
+    kappa=7.6*10**37*aa*aa
+    return kappa
+
 ## A function to generate a single disturbance in Spacetime
 ## Need to adjust the magnitude of epsilon
 def Delta_gen(epsilon):
     Delta=[0., 0., 0., 0.,]
-    magnit=epsilon/1     ### Specify the magnitude of deformations
+    magnit=epsilon/1000     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
-        Delta[i]=np.random.uniform(0, magnit) ### Either from -magnitude to magnitude
+        Delta[i]=np.random.uniform(-magnit, magnit) ### Either from -magnitude to magnitude
     return Delta
 
 ## First order approximations of spacetime deformations in all directions
@@ -81,12 +86,12 @@ def first_approx_tool(SP, t, x, y, z):
     diff_x=SP_x-SP_og
     diff_y=SP_y-SP_og
     diff_z=SP_z-SP_og     
-    total_diff=diff_t+diff_x+diff_y+diff_z
-    #total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]     ### The paper gives me just the diagonal terms
-    total_sum=0
-    for i in range(len(total_diff)):
-        total_sum=total_sum+total_diff[i]
-    return total_sum
+    #total_diff=diff_t+diff_x+diff_y+diff_z
+    total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]
+    # total_sum=0
+    # for i in range(len(total_diff)):
+    #     total_sum=total_sum+total_diff[i]
+    return total_diff
 
 ### First order approximation of the Jacobian
 ### Could add a for loop as well
@@ -113,12 +118,7 @@ def h_matrix_producinator(SPrime, coords):
     z=coords[3]
     jack=inv_Jack(SPrime, t, x, y, z)
     h_matrix=np.zeros((4, 4))
-    for alpha in range(4):
-        for beta in range(4):
-            if beta <= alpha:
-                h_matrix[alpha, beta]=jack[alpha][beta]*jack[alpha][beta]+jack[alpha][beta]*jack[alpha][beta]+jack[alpha][beta]*jack[alpha][beta]+jack[alpha][beta]*jack[alpha][beta]
-                h_matrix[beta, alpha]=h_matrix[alpha, beta]
-    print(h_matrix)
+    ### Diagonal terms
     h_matrix[0, 0]=jack[0][0]*jack[0][0]+jack[1][0]*jack[1][0]+jack[2][0]*jack[2][0]+jack[3][0]*jack[3][0]-1
     h_matrix[1, 1]=jack[0][1]*jack[0][1]+jack[1][1]*jack[1][1]+jack[2][1]*jack[2][1]+jack[3][1]*jack[3][1]-1
     h_matrix[2, 2]=jack[0][2]*jack[0][2]+jack[1][2]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][2]*jack[3][2]-1
@@ -139,26 +139,26 @@ def h_matrix_producinator(SPrime, coords):
 
     h_matrix[2, 3]=jack[0][2]*jack[0][3]+jack[1][2]*jack[1][3]+jack[2][2]*jack[2][3]+jack[3][2]*jack[3][3]
     h_matrix[3, 2]=h_matrix[2, 3]
-    print(h_matrix)
     return h_matrix
 
+### Collects surrounding h matrices for given coordinates into a 4x4 matrix 
 def h_matrix_collectinator(SPrime, t, x, y, z):
-    h_alphabeta=[[np.identity(4) for alph in range(4)] for beth in range(4)]
-    h_alpha=[np.identity(4) for alph in range(4)]
+    h_alphabeta=[[np.identity(4) for alph in range(4)] for beth in range(4)]    ### For h matrices where we add two lattice spacings from the origin
+    h_alpha=[np.identity(4) for alph in range(4)]   ### For h matrices separated from origin by single lattice spacing
     coords=[t, x, y, z]
     for alpha in range(4):
         for beta in range(4):
             coords[alpha]=+1
             coords[beta]+=1
             h_alphabeta[alpha][beta]=h_matrix_producinator(SPrime, coords)
-            coords[alpha]-=1
             coords[beta]-=1
-        coords[alpha]+=1        ###I could remove the two redundant lines
         h_alpha[alpha]=h_matrix_producinator(SPrime, coords)
         coords[alpha]-=1
-    h_og=h_matrix_producinator(SPrime, coords)
+    h_og=h_matrix_producinator(SPrime, coords)      ### The h matrix for origin
     return h_alphabeta, h_alpha, h_og
 
+
+### Function to find the Ricci scalar curvature at a given point
 def Ricci(SPrime, t, x, y, z):
     h_alphabeta, h_alpha, h_og = h_matrix_collectinator(SPrime, t, x, y, z)
     h_alphabeta=np.array(h_alphabeta)
@@ -171,26 +171,42 @@ def Ricci(SPrime, t, x, y, z):
     R_betabeta=0
     R_og_betabeta=0
     Ricci_scalar=0
+    # ### First term of eq 26
+    # for alpha in range(4):
+    #     for beta in range(4):
+    #         for i in range(4):
+    #             for j in range(4):
+    #                 R_alphabeta=R_alphabeta+h_alphabeta[alpha, beta, i, j]
     for alpha in range(4):
         for beta in range(4):
-            for i in range(4):
-                for j in range(4):
-                    R_alphabeta=R_alphabeta+h_alphabeta[alpha, beta, i, j]
+            R_alphabeta=R_alphabeta+h_alphabeta[alpha, beta, alpha, beta]
+    # ### Second/third terms of eq 26
+    # for alpha in range(4):
+    #     for i in range(4):
+    #         for j in range(4):
+    #             R_alpha=R_alpha+h_alpha[alpha, i, j]
     for alpha in range(4):
-        for i in range(4):
-            for j in range(4):
-                R_alpha=R_alpha+h_alpha[alpha, i, j]
+        for beta in range(4):
+            R_alpha=R_alpha+h_alpha[alpha, alpha, beta]
+            R_alpha=R_alpha+h_alpha[alpha, beta, alpha]
+    ### 4th term of eq 26
     for i in range(4):
         for j in range(4):
             R_og=R_og+h_og[i, j]
+    ### 5th
     for alpha in range(4):
         R_2_betabeta=R_2_betabeta+np.trace(h_alphabeta[alpha, alpha])
+    ### 6th
     for alpha in range(4):
         R_betabeta=R_betabeta+np.trace(h_alpha[alpha])
+    ### 8th
     R_og_betabeta=np.trace(h_og)
-    Ricci_scalar=R_alphabeta-2*R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta
+    Ricci_scalar=R_alphabeta-R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta
     return Ricci_scalar
 
+### First order approximation of the plaquette. 
+### I put the Delta inside the summation, so that I wouldn't have to define another function and restructure gauge_latticeqcd
+### Returns only the deltaP, a 4 vector. I still have to contract with the Delta (deformation), which is done in deltaSEH
 def Plaq_approx(self, t, x, y, z, matrices):
     matrices_length = len(matrices)
     Plaquette_approximations=[0., 0., 0., 0.]
@@ -198,6 +214,7 @@ def Plaq_approx(self, t, x, y, z, matrices):
     for ro in range(4):
         coords[ro]+=1
         for mu in range(4):
+            ### This part uses the code from gauge_latticeqcd
             r = np.random.randint(0, matrices_length) 
             matrix = matrices[r]
             staple=self.dS_staple(coords[0], coords[1], coords[2], coords[3], mu)
