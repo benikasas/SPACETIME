@@ -42,36 +42,47 @@ u0=1
 # SP=np.zeros((14, 14, 14, 14, 4))
 # print(len(SP[])
 
-def inv_Jack(SPrime, t, x, y, z):
-    SP_og=SPrime[t, x, y, z, :]
-    SP_t=SPrime[t+1, x, y, z, :]
-    SP_x=SPrime[t, x+1, y, z, :]
-    SP_y=SPrime[t, x, y+1, z, :]
-    SP_z=SPrime[t, x, y, z+1, :]
-    jack=np.identity(4)
-    jack[0][:]=np.add(jack[0][:], (SP_t-SP_og))
-    jack[1][:]=np.add(jack[1][:], (SP_x-SP_og))
-    jack[2][:]=np.add(jack[2][:], (SP_y-SP_og))
-    jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
-    jack=np.linalg.inv(jack)
-    return jack
+# def inv_Jack(SPrime, t, x, y, z):
+#     SP_og=SPrime[t, x, y, z, :]
+#     SP_t=SPrime[t+1, x, y, z, :]
+#     SP_x=SPrime[t, x+1, y, z, :]
+#     SP_y=SPrime[t, x, y+1, z, :]
+#     SP_z=SPrime[t, x, y, z+1, :]
+#     jack=np.identity(4)
+#     jack[0][:]=np.add(jack[0][:], (SP_t-SP_og))
+#     jack[1][:]=np.add(jack[1][:], (SP_x-SP_og))
+#     jack[2][:]=np.add(jack[2][:], (SP_y-SP_og))
+#     jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
+#     jack=np.linalg.inv(jack)
+#     return jack
 
-def Ricci(t, x, y, z):
-    array=[t, x, y, z]
-    for alpha in range(4):
-        for beta in range(4):
-            array[alpha]=array[alpha]+1
-            array[beta]=array[beta]+1
-            print(array)
-            array[alpha]-=1
-            array[beta]-=1
-            print('space1')
-            if alpha == beta:
-                print('ayoo')
-        array[alpha]+=1
-        print(array)
-        array[alpha]-=1
-        print('space2')
-    return 1
+# def Ricci(t, x, y, z):
+#     array=[t, x, y, z]
+#     for alpha in range(4):
+#         for beta in range(4):
+#             array[alpha]=array[alpha]+1
+#             array[beta]=array[beta]+1
+#             print(array)
+#             array[alpha]-=1
+#             array[beta]-=1
+#             print('space1')
+#             if alpha == beta:
+#                 print('ayoo')
+#         array[alpha]+=1
+#         print(array)
+#         array[alpha]-=1
+#         print('space2')
+#     return 1
 
-Ricci(14, 14, 14, 14)
+# Ricci(14, 14, 14, 14)
+
+# def kappa_calca(aa):
+#     kappa=7.6*10**37*aa*aa
+#     return kappa
+
+# def fn_a(beta):
+#     return 0.5 * np.exp(-1.6804 - 1.7331 * (beta - 6.) + 0.7849 * (beta - 6.)**2 - 0.4428 * (beta - 6.)**3)
+
+# aa=fn_a(6.92)
+# print(aa)
+# print(kappa_calca(aa))

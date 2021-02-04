@@ -24,10 +24,10 @@ import gauge_latticeqcd
 # epsilon = 0.24      # how "far" away from identity the updates will be
 # threads = 4       # threads used in multiprocessing
 
-Nt = 6
-Nx = 6
-Ny = 6
-Nz = 6
+Nt = 10
+Nx = 10
+Ny = 10
+Nz = 10
 Ncfg = 1000          
 action = 'W'    
 betas = [5.7]      
@@ -35,12 +35,12 @@ startcfg = 0
 Nhits = 50         
 Nmatrix = 10000   
 epsilon = 0.20    
-threads = 1 
+threads = 4 
 
 Nu0_step = 1       # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1        # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
-thermal=1         # Number of configurations before starting the general relativity part
+thermal=5         # Number of configurations before starting the general relativity part
 border=2            # The border of spacetime lattice that will equal to 0
 
 # ### initialize multiprocessing
@@ -63,12 +63,12 @@ if __name__ == '__main__':
             print("Deformation directory exists as well")
 
     #### Removed the multiprocessing as it barely does anything
-    Acceptance_result=gauge_latticeqcd.generate(beta=betas[0], u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+    # Acceptance_result=gauge_latticeqcd.generate(beta=betas[0], u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
 
 
     
-#     p = Pool(threads)
-#     # ### function to be calculated needs to use functools to work with map
-#     func = functools.partial(generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, Nfluc=Nfluc, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
-#     p.map(func, betas) # call multiprocessing map function
-#     p.terminate()      # terminate multiprocessing
+    p = Pool(threads)
+    # ### function to be calculated needs to use functools to work with map
+    func = functools.partial(gauge_latticeqcd.generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+    p.map(func, betas) # call multiprocessing map function
+    p.terminate()      # terminate multiprocessing
