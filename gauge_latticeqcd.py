@@ -541,6 +541,8 @@ class lattice():
         Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old
         return Action_1
     
+
+    ### I need to take the SPrime inside, and for each term take into account old coords
     def action_2(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
         Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices)
         Action_2=0
@@ -595,6 +597,7 @@ class lattice():
         if save_name:
             output_1 = 'logs/' + save_name + '/link_' + save_name + '_'
             output_2 = 'Deformations/' + save_name + '/link_' + save_name + '_'
+            output_3 = 'Rich/' + save_name + '/link_' + save_name + '_'
             ##########################
         
         #if tadpole improving, initialize list of u0 values
@@ -606,7 +609,7 @@ class lattice():
         ### loop through all space time to thermalize the lattice with QCD before starting spacetime
         for i in range(Ncfg - 1):
             print('starting sweep ' + str(i+initial_cfg) + ':  ' + str(datetime.datetime.now()))
-            if i < thermal:
+            if i < thermal and initial_cfg < thermal:
                 ### loop through spacetime dimensions
                 for t in range(self.Nt):
                     for x in range(self.Nx):
@@ -664,18 +667,19 @@ class lattice():
             else:
             ### loop through spacetime dimensions
                 print('Lets get this ready')
+                rich_array=np.zeros((self.Nt, self.Nx, self.Ny, self.Nz))
                 for t in range(self.Nt):
                     for x in range(self.Nx):
                         for y in range(self.Ny):
                             for z in range(self.Nz):
                                 # Generate a spacetime grid distortion
-                                SP_prime=self.SP 
+                                
                                 ### Only add deformations if were inside the border
-                                if t >= border and t < (self.Nt-border):
-                                    if x >= border and x < (self.Nx-border):
-                                        if y >= border and y < (self.Ny-border):
-                                            if z >= border and z < (self.Nz-border):
-                                                SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
+                                # if t >= border and t < (self.Nt-border):
+                                #     if x >= border and x < (self.Nx-border):
+                                #         if y >= border and y < (self.Ny-border):
+                                #             if z >= border and z < (self.Nz-border):
+                                                
                                 ### loop through directions
                                 for mu in range(4):
                                     ### check which staple to use
@@ -689,22 +693,22 @@ class lattice():
                                     else:
                                         print("Error: Wrong action name or not implemented.")
                                         sys.exit()
-                                    ### loop through hits
                                     for j in range( Nhits ):
                                         ### get a random SU(3) matrix
-                                        r = np.random.randint(0, matrices_length)
-                                        matrix = matrices[r] 
+                                        r = np.random.randint(0, matrices_length) 
+                                        matrix = matrices[r]
                                         ### create U' and primed spacetime point
                                         Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
-                                        Ricci=1
+                                        Ricci=0
+                                        SP_prime=self.SP 
                                         if t >= border and t < self.Nt-border:
                                             if x >= border and x < self.Nx-border:
                                                 if y >= border and y < self.Ny-border:
                                                     if z >= border and z < self.Nz-border:
+                                                        SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices)
                                                         ##dS = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                                     ############# R_matrix[x, y]=Ricci
-                                       
                                         else:
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
@@ -712,6 +716,7 @@ class lattice():
                                                 self.U[t, x, y, z, mu, :, :] = Uprime
                                                 self.SP[t, x, y, z, :]=SP_prime[t, x, y, z, :]
                                                 ratio_accept += 1
+                                                rich_array[t, x, y, z] = Ricci
                                         # else:
                                         #     print('You are going to the right direction')
                 if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
@@ -731,9 +736,15 @@ class lattice():
                     file_out = open(output_idx_1, 'wb')
                     np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
                     sys.stdout.flush()
+
                     output_idx_2 = output_2 + str(int( idx ))
                     file_out_2=open(output_idx_2, 'wb')
                     np.save(file_out_2, self.SP)
+                    sys.stdout.flush()
+
+                    output_idx_3 = output_3 + str(int( idx ))
+                    file_out_3=open(output_idx_3, 'wb')
+                    np.save(file_out_3, rich_array)
                     sys.stdout.flush()
 
 

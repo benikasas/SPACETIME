@@ -1,11 +1,8 @@
 import numpy as np
-from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0
+#from generate import Nt, Nx, Ny, Nz, action, epsilon, u0
 import tools_v1
 
 
-
-beta=betas[0]
-lattice_space=tools_v1.fn_a(beta)
 
 
 
@@ -69,7 +66,7 @@ def kappa_calc(aa):
 ## Need to adjust the magnitude of epsilon
 def Delta_gen(epsilon):
     Delta=[0., 0., 0., 0.,]
-    magnit=epsilon/1000     ### Specify the magnitude of deformations
+    magnit=epsilon/100000     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
         Delta[i]=np.random.uniform(-magnit, magnit) ### Either from -magnitude to magnitude
     return Delta
@@ -221,5 +218,8 @@ def Plaq_approx(self, t, x, y, z, matrices):
             link=self.U[coords[0], coords[1], coords[2], coords[3], mu, :, :]
             updated_link = np.dot(matrix, self.U[coords[0], coords[1], coords[2], coords[3], mu, :, :])
             Plaquette_approximations[ro]=(-1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link - link), staple)))
+            # Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### Expanded the difference into two lines
+            # Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple))))))
+            # Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old
         coords[ro]-=1
     return Plaquette_approximations

@@ -14,8 +14,8 @@ Nt = 14
 action = 'W'
 beta = 5.7
 u0 = 1.0
-Nstart = 919
-Nend = 980
+Nstart = 0
+Nend = 230
 
 #@numba.njit
 def calc_S(U):
@@ -35,7 +35,7 @@ def calc_S(U):
     return S
 
 
-dir = './' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '/'
+dir = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '/'
 U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_'
 
 
