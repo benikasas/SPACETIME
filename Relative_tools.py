@@ -66,7 +66,7 @@ def kappa_calc(aa):
 ## Need to adjust the magnitude of epsilon
 def Delta_gen(epsilon):
     Delta=[0., 0., 0., 0.,]
-    magnit=epsilon/100000     ### Specify the magnitude of deformations
+    magnit=epsilon/(10**6)     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
         Delta[i]=np.random.uniform(-magnit, magnit) ### Either from -magnitude to magnitude
     return Delta
@@ -204,9 +204,10 @@ def Ricci(SPrime, t, x, y, z):
 ### First order approximation of the plaquette. 
 ### I put the Delta inside the summation, so that I wouldn't have to define another function and restructure gauge_latticeqcd
 ### Returns only the deltaP, a 4 vector. I still have to contract with the Delta (deformation), which is done in deltaSEH
-def Plaq_approx(self, t, x, y, z, matrices):
+def Plaq_approx(self, t, x, y, z, matrices, SPrime):
     matrices_length = len(matrices)
     Plaquette_approximations=[0., 0., 0., 0.]
+    Action_1=0
     coords=[t, x, y, z]
     for ro in range(4):
         coords[ro]+=1
@@ -217,9 +218,9 @@ def Plaq_approx(self, t, x, y, z, matrices):
             staple=self.dS_staple(coords[0], coords[1], coords[2], coords[3], mu)
             link=self.U[coords[0], coords[1], coords[2], coords[3], mu, :, :]
             updated_link = np.dot(matrix, self.U[coords[0], coords[1], coords[2], coords[3], mu, :, :])
-            Plaquette_approximations[ro]=(-1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link - link), staple)))
-            # Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### Expanded the difference into two lines
-            # Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple))))))
-            # Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old
+            # Plaquette_approximations[ro]=(-1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link - link), staple)))
+            Lqcd_nu=(1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple)))))  ####### Expanded the difference into two lines
+            Lqcd_old=(1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))
+            Action_1=Action_1+SPrime[t, x, y, z, ro]*Lqcd_nu-self.SP[t, x, y, z, ro]*Lqcd_old
         coords[ro]-=1
-    return Plaquette_approximations
+    return Action_1

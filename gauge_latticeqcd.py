@@ -544,11 +544,12 @@ class lattice():
 
     ### I need to take the SPrime inside, and for each term take into account old coords
     def action_2(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
-        Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices)
-        Action_2=0
-        for alpha in range(4):
-            Action_2=Action_2 + SPrime[t, x, y, z, alpha] + Plaquette_approximations[alpha]
-        Action_2=Action_2 * self.beta
+        Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices, SPrime)
+        # Action_2=0
+        # for alpha in range(4):
+        #     Action_2=Action_2 + SPrime[t, x, y, z, alpha] + Plaquette_approximations[alpha]
+        # Action_2=Action_2 * self.beta
+        Action_2=Plaquette_approximations * self.beta
         return Action_2
     
     def action_3(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old):

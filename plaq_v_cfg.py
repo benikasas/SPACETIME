@@ -19,7 +19,7 @@ from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0
 # beta = 5.5
 # u0 = 1.0
 Nstart = 1
-Nend = 1790
+Nend = 109
 beta=betas[0]
 
 if __name__ == "__main__":

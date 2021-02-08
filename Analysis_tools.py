@@ -7,6 +7,8 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import gauge_latticeqcd
 import matplotlib as cm
+import tools_v1
+import Relative_tools
 # from plaq_v_cfg import *
 
 
@@ -28,7 +30,7 @@ U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_eps
 def grapher():
     data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
     rendername = './images/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action
-    lineplot=pygal.XY(stroke=False, show_legend=False, background='grey', range=(0.4, 0.6))
+    lineplot=pygal.XY(stroke=False, show_legend=False, background='grey', range=(0.2, 0.6))
     lineplot.add('line', data[:])
     lineplot.render_to_file(rendername + '.svg')
 
@@ -116,13 +118,17 @@ def U_SP_fusion():
     dir_2 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
     dir_3 = './Fusion/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
     U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_'
-    for i in range(end - thermal):
-        idx=i+thermal
+    initial=5
+    bet=betas[0]
+    aa=tools_v1.fn_a(bet)
+    kappa=Relative_tools.kappa_calc(aa)
+    for i in range(end - thermal + initial):
+        idx=i+thermal-initial
         input_file_1 = dir_1 + U_infile + str(idx)
         U=np.load(input_file_1)
-
-        input_file_2 = dir_2 + U_infile + str(idx)
-        SP=np.load(input_file_2)
+        if i >= initial:
+            input_file_2 = dir_2 + U_infile + str(idx)
+            SP=np.load(input_file_2)
 
         x=range(len(U))
         y=range(len(U))
@@ -133,13 +139,14 @@ def U_SP_fusion():
         for alpha in range(len(U)):
             for beta in range(len(U)):
                 grid[alpha][beta]=gauge_latticeqcd.fn_eval_point_S(U, border+1, alpha, beta, border+1, betas[0], u0=1.)
-
         ax.plot_wireframe(X, Y, grid)
-        ax.plot_wireframe(X, Y, 16+SP[border+1][:][:][border+1]*10**16, color='red')
+        
+        if i>= initial:
+            ax.plot_wireframe(X, Y, SP[border+1][:][:][border+1]*kappa, color='red')
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
-        plt.show()
+        # plt.show()
         if not os.path.exists(dir_3):
             os.mkdir(dir_3)
         out_file= dir_3 + U_infile + '_' + str(idx)
@@ -147,7 +154,7 @@ def U_SP_fusion():
 
 
 
-value=U_slicer()
+value=U_SP_fusion()
 
 # in_fold='./Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
 # in_file=in_fold +  + 'link_' + action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_' + str(100)

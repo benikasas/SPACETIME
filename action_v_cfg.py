@@ -4,19 +4,21 @@ import numpy as np
 import tools_v1 as tool
 import gauge_latticeqcd as gl
 import params
+from generate import Nx, Ny, Nz, Nt, action, u0, betas
 
 
 ### Script to calculate the evolution of the action as a function of Monte Carlo time
-Nx = 14
-Ny = 14
-Nz = 14
-Nt = 14
-action = 'W'
-beta = 5.7
-u0 = 1.0
+# Nx = 14
+# Ny = 14
+# Nz = 14
+# Nt = 14
+# action = 'W'
+# beta = 5.7
+# u0 = 1.0
 Nstart = 0
-Nend = 230
+Nend = 109
 
+beta=betas[0]
 #@numba.njit
 def calc_S(U):
     Nt, Nx, Ny, Nz = len(U), len(U[0]), len(U[0, 0]), len(U[0, 0, 0])
@@ -40,7 +42,7 @@ U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny
 
 
 ### prepare output file
-outfile = './S_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
+outfile = './logs/S_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
 fout = open(outfile, 'a')
 
 fout.write('#1:cfg  2:S\n')

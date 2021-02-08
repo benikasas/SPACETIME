@@ -24,14 +24,14 @@ import gauge_latticeqcd
 # epsilon = 0.24      # how "far" away from identity the updates will be
 # threads = 4       # threads used in multiprocessing
 
-Nt = 9
-Nx = 9
-Ny = 9
-Nz = 9
+Nt = 16
+Nx = 16
+Ny = 16
+Nz = 16
 Ncfg = 1000          
 action = 'W'    
 betas = [5.7]      
-startcfg = 0    
+startcfg = 102      
 Nhits = 50         
 Nmatrix = 10000   
 epsilon = 0.20    
@@ -40,7 +40,7 @@ threads = 4
 Nu0_step = 1       # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1        # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.            # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
-thermal=5         # Number of configurations before starting the general relativity part
+thermal=100         # Number of configurations before starting the general relativity part
 border=3            # The border of spacetime lattice that will equal to 0
 
 # ### initialize multiprocessing
