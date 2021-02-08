@@ -19,7 +19,7 @@ Nz = 16
 Ncfg = 1000         # number of lattices to generate
 action = 'W'        ########## Spacetime part implemented only for Wilson action    
 betas = [5.7]       # betas to be generated, beta = 6/g^2
-startcfg = 102      # warm start (0) or existing cfg number to start the Markov chain
+startcfg = 1      # warm start (0) or existing cfg number to start the Markov chain
 Nhits = 50          # hits between each update
 Nmatrix = 10000     # Number of matrices to generate for LQCD
 epsilon = 0.20      # how "far" away from identity the updates will be
@@ -30,14 +30,15 @@ Nu0_avg = 1         # if tadpole improving, number of u0 values to average toget
 u0 = 1.             # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
 thermal=100         # Number of configurations before starting the general relativity part
 border=4            # Defines edges over which there will be no spacetime deformations, and the action will come from LQCD only
+magnitude_1=10**(19)
 
 # ### initialize multiprocessing
 if __name__ == '__main__':
     ### generate lattices
     for b in betas:
-        dir_name = 'C:/Users/justi/SPACETIME/C_Code/logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100))
-        dir_name_1 = 'C:/Users/justi/SPACETIME/C_Code/Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100))
-        dir_name_2 = 'C:/Users/justi/SPACETIME/C_Code/Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100))
+        dir_name = 'C:/Users/justi/SPACETIME/C_Code/logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
+        dir_name_1 = 'C:/Users/justi/SPACETIME/C_Code/Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100)) + '_border' + str(border) + '_magnitude_' + str(int(magnitude_1))
+        dir_name_2 = 'C:/Users/justi/SPACETIME/C_Code/Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(b * 100)) + '_border' + str(border) + '_magnitude_' + str(int(magnitude_1))
         ### create output directory if it does not exist
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
@@ -60,6 +61,6 @@ if __name__ == '__main__':
     #### Reinstalled multiprocessing in hopes that it actually does something
     p = Pool(threads)
     ### function to be calculated needs to use functools to work with map
-    func = functools.partial(gauge_latticeqcd.generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
+    func = functools.partial(gauge_latticeqcd.generate, u0=u0, action=action, Nt=Nt, Nx=Nx, Ny=Ny, Nz=Nz, startcfg=startcfg, Ncfg=Ncfg, thermal=thermal, border=border, Nhits=Nhits, Nmatrix=Nmatrix, epsilon=epsilon, magnitude_1=magnitude_1, Nu0_step=Nu0_step, Nu0_avg=Nu0_avg)
     p.map(func, betas) # call multiprocessing map function
     p.terminate()      # terminate multiprocessing

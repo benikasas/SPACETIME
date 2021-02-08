@@ -4,7 +4,7 @@ import tools_v1
 
 
 
-
+### The SU2 and SU3 computations were transported here from gauge_latticeqcd.py, from the given code
 
 ### Generate SU(2) matrix as described in Gattringer & Lang
 def matrix_su2(epsilon = 0.2):
@@ -59,20 +59,22 @@ def create_su3_set(epsilon = 0.2, tot = 1000):
 
 ### Dimensionless Kappa calculator
 def kappa_calc(aa):
-    kappa=7.6*10**37*aa*aa
+    kappa=7.6*10**37*aa*aa  ### This was found using the kappa value (from constants) multiplied by lattice spacing^2
     return kappa
 
 ## A function to generate a single disturbance in Spacetime
 ## Need to adjust the magnitude of epsilon
-def Delta_gen(epsilon):
+def Delta_gen(epsilon, magnitude_1):
     Delta=[0., 0., 0., 0.,]
-    magnit=epsilon/(10**6)     ### Specify the magnitude of deformations
+    magnitude_2=epsilon/(magnitude_1)     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
-        Delta[i]=np.random.uniform(-magnit, magnit) ### Either from -magnitude to magnitude
+        Delta[i]=np.random.uniform(-magnitude_2, magnitude_2) 
     return Delta
 
 ## First order approximations of spacetime deformations in all directions
 ## Make a for loop in the future
+## Could be combined with inv_jack
+## This finds the difference between the deformation at x' and x'- a * nu where nu is the direction vector
 def first_approx_tool(SP, t, x, y, z):
     SP_og=SP[t, x, y, z, :]
     SP_t=SP[t+1, x, y, z, :]
@@ -83,14 +85,11 @@ def first_approx_tool(SP, t, x, y, z):
     diff_x=SP_x-SP_og
     diff_y=SP_y-SP_og
     diff_z=SP_z-SP_og     
-    #total_diff=diff_t+diff_x+diff_y+diff_z
-    total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]
-    # total_sum=0
-    # for i in range(len(total_diff)):
-    #     total_sum=total_sum+total_diff[i]
+    total_diff=diff_t[0]+diff_x[1]+diff_y[2]+diff_z[3]  ### Esentially finds the trace (this is the sum of delta_ro Delta^ro)
     return total_diff
 
-### First order approximation of the Jacobian
+### First order approximation of the Jacobian (using equation 17)
+### Esentially its a deformation matrix with an identity added
 ### Could add a for loop as well
 def inv_Jack(SPrime, t, x, y, z):
     SP_og=SPrime[t, x, y, z, :]
@@ -103,11 +102,12 @@ def inv_Jack(SPrime, t, x, y, z):
     jack[1][:]=np.add(jack[1][:], (SP_x-SP_og))
     jack[2][:]=np.add(jack[2][:], (SP_y-SP_og))
     jack[3][:]=np.add(jack[3][:], (SP_z-SP_og))
-    jack=np.transpose(jack)
+    jack=np.transpose(jack)     ### I am pretty sure this is needed, but I might be wrong
     jack=np.linalg.inv(jack)
     return jack
 
 ### Finds the h matrix for the S_Prime matrix with given coordinates
+### This is found using equation 23
 def h_matrix_producinator(SPrime, coords):
     t=coords[0]
     x=coords[1]
@@ -121,6 +121,7 @@ def h_matrix_producinator(SPrime, coords):
     h_matrix[2, 2]=jack[0][2]*jack[0][2]+jack[1][2]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][2]*jack[3][2]-1
     h_matrix[3, 3]=jack[0][3]*jack[0][3]+jack[1][3]*jack[1][3]+jack[2][3]*jack[2][3]+jack[3][3]*jack[3][3]-1
 
+    ### I am pretty sure the matrix is going to be symmetric.
     h_matrix[0, 1]=jack[0][0]*jack[0][1]+jack[1][0]*jack[1][1]+jack[2][1]*jack[2][1]+jack[3][0]*jack[3][1]
     h_matrix[0, 2]=jack[0][0]*jack[0][2]+jack[1][0]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][0]*jack[3][2]
     h_matrix[0, 3]=jack[0][0]*jack[0][3]+jack[1][0]*jack[1][3]+jack[2][3]*jack[2][3]+jack[3][0]*jack[3][3]

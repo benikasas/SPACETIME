@@ -301,16 +301,16 @@ def fn_F_munu(U, t, x, y, z, mu, nu):
 
 #-------------Generation code -------------------
 ### function called by multiprocessor in generate script
-def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, Nhits, Nmatrix, epsilon, Nu0_step='', Nu0_avg = 10):    
+def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, Nhits, Nmatrix, epsilon, magnitude_1, Nu0_step='', Nu0_avg = 10):    
     
     ### loop over (t,x,y,z) and mu and set initial collection of links
     ### Either:
     ###  1. initialize to warm start by using random collection of SU(3) links, or
     ###  2. read in a previously generated configuration and continue with that Markov chain.
 
-    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
+    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))  + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
     aa = tool.fn_a( beta ) ### returns lattice spacing calculated for the beta value
-    kappa = Relative_tools.kappa_calc(aa)
+    kappa = Relative_tools.kappa_calc(aa)   ### Returns the lattice adjusted kappa value
 
     print('simulation parameters:')
     print('      action: ' + action)
@@ -331,15 +331,12 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, 
         #print(action)
         U = lc.fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, startcfg, "./logs/")
         U = lattice(Nt, Nx, Ny, Nz, beta, u0, U)
-        
-        
-        
-        ########if startcfg>thermal:
+    ### I could implement something like above for spacetime deformations, but right now the code should work, and if startcfg =! 0, it recalculates the last iteration
     
     print('Continuing from cfg: ', startcfg)
     print('... generating lattices')
     matrices = Relative_tools.create_su3_set(epsilon, Nmatrix)
-    acceptance = U.markov_chain_sweep(epsilon, Ncfg, matrices, startcfg, name, thermal, border, Nhits, action, Nu0_step, Nu0_avg)
+    acceptance = U.markov_chain_sweep(epsilon, magnitude_1, Ncfg, matrices, startcfg, name, thermal, border, Nhits, action, Nu0_step, Nu0_avg)
     print("acceptance:", acceptance)
     return acceptance
 
@@ -365,7 +362,7 @@ class lattice():
         self.Nt = Nt
         aa = tool.fn_a( beta ) ### returns lattice spacing calculated for the beta value
         self.kappa=Relative_tools.kappa_calc(aa)
-        ### Create a separate matrix for spacetime deformations
+        ### Create a separate matrix for spacetime deformations, which is the zero matrix initially (there are no deformations).
         if None == SP:
             SP=np.zeros((Nt, Nx, Ny, Nz, 4))
         self.SP = np.array(SP)
@@ -510,11 +507,7 @@ class lattice():
         ### Return staple corrected with rectangles
         return (5. * plaquette / self.u0**3 / 9.) - (rectangle / self.u0**5 / 36.)  
 
-    
-    ### Difference of action. Gets link, updated link, and staple
-    #def deltaS(self, link, updated_link, staple):
-    #    change = np.trace(np.dot((updated_link - link), staple))
-    #    return -self.beta * np.real(change)
+
 
 
     ### Difference of action at a point for fixed staple. Gets link, updated link, and staple A.
@@ -524,27 +517,33 @@ class lattice():
     
     ### Finds the Einstein - Hilbert action
     def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
-        approx_nu=Relative_tools.first_approx_tool(SPrime, t, x, y, z)
-        approx_old=Relative_tools.first_approx_tool(SP, t, x, y, z)
+        approx_nu=Relative_tools.first_approx_tool(SPrime, t, x, y, z)      ### Returns the approximation value for the new iteration of spacetime deformations
+        approx_old=Relative_tools.first_approx_tool(SP, t, x, y, z)         ### Returns the old approximation value for spacetime deformation
 
-        Action_1=self.action_1(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old)
-        Action_2=self.action_2(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices)
-        Action_3, Ricci=self.action_3(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old)
+        ### The next three lines actually find the difference in action between old and new values of action.
+        ### In hindsight, I have no idea why I've done it this way
+        ### I could have saved up some lines by sending the old configuration and the new one, and finding the difference in action in the end. 
+        Action_1=self.action_1(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old)    ### Returns the first line of eq.22 of spacetime note
+        Action_2=self.action_2(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices)   ### Returns the second line of eq. 22
+        Action_3, Ricci=self.action_3(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old) ### Third line of eq. 22
         
-        Action=Action_1+Action_2+Action_3
-        print(Ricci)
+        Action=Action_1+Action_2+Action_3       ### Finds the sum of the actions
         return Action, Ricci
 
     def action_1(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old):
-        Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ####### Expanded the difference into two lines
-        Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple))))))
-        Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old
+        ### Expanded the difference into two lines
+        Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
+        Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
+        Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old  ### Finds the difference in the actions (first line in eq. 22)
         return Action_1
     
 
     ### I need to take the SPrime inside, and for each term take into account old coords
     def action_2(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
+        ### Returns the second line of eq. 22
+        ### The fn. Plaq_approx already does everything, so this is a bit redundant
         Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices, SPrime)
+        
         # Action_2=0
         # for alpha in range(4):
         #     Action_2=Action_2 + SPrime[t, x, y, z, alpha] + Plaquette_approximations[alpha]
@@ -591,7 +590,7 @@ class lattice():
     ###   hits per sweep,
     ###   action-> W for Wilson or WR for Wilson with rectangles
     ###            W_T or WR_T for tadpole improvement
-    def markov_chain_sweep(self, epsilon, Ncfg, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
+    def markov_chain_sweep(self, epsilon, magnitude_1, Ncfg, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
         ratio_accept = 0.
         matrices_length = len(matrices)
         ################R_matrix=np.zeros(self.Nx, self.Ny)
@@ -706,7 +705,7 @@ class lattice():
                                             if x >= border and x < self.Nx-border:
                                                 if y >= border and y < self.Ny-border:
                                                     if z >= border and z < self.Nz-border:
-                                                        SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon)
+                                                        SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon, magnitude_1)
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices)
                                                         ##dS = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                                     ############# R_matrix[x, y]=Ricci
