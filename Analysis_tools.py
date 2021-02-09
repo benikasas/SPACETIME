@@ -1,7 +1,7 @@
 import sys, os, string, numba
 import numpy as np
 import pygal
-from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, thermal, border
+from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, thermal, border, magnitude_1
 from plaq_v_cfg import Nstart, Nend
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
@@ -24,18 +24,19 @@ beta=betas[0]
 
 
 ## Uses the settings to generate the name for the selected data from relevant file.
-U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
+U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
 
 ## Function to graph the plaquette values against configuration number
 def grapher():
     data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
-    rendername = './images/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action
+    rendername = './images/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
     lineplot=pygal.XY(stroke=False, show_legend=False, background='grey', range=(0.2, 0.6))
     lineplot.add('line', data[:])
     lineplot.render_to_file(rendername + '.svg')
 
 
 ## Function to run various analyses on the file
+## Very outdated, needs a heavy upgrade
 def statistician():
     plaq=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=1,usecols=(1,)) ## Loads plaquette data file
     totsum=np.sum(plaq) ## Finds the sum of the plaquette
@@ -51,7 +52,8 @@ def statistician():
     
     print('Acceptable value: ', mean_val, ' with standard deviation :', mean_sdev)
 
-### Used to reduce 4D to 3D, and use color grading to find the magnitude of deformations
+### Used to reduce 4D to 3D
+### This is done by fixing two coordinates and plotting the Ricci curvature against the other two coordinates
 
 def SP_slicer():
     end=230
@@ -79,6 +81,7 @@ def SP_slicer():
         out_file= dir_2 + U_infile + '_' + str(idx)
         fig.savefig(out_file)
 
+### Same as above but for LQCD part
 def U_slicer():
     end=230
     dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
@@ -112,13 +115,14 @@ def U_slicer():
         # out_file= dir_2 + U_infile + '_' + str(idx)
         # fig.savefig(out_file)
 
+### Combines the above two functions into a single one
 def U_SP_fusion():
-    end=230
-    dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    dir_2 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    dir_3 = './Fusion/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_'
-    initial=5
+    end=230     ### Don't really need this, as without it, after running out of configurations, returns an error
+    dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_2 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_3 = './Fusion/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
+    initial=5   ### Number of configurations to plot before plotting the spacetime part
     bet=betas[0]
     aa=tools_v1.fn_a(bet)
     kappa=Relative_tools.kappa_calc(aa)
@@ -138,11 +142,11 @@ def U_SP_fusion():
         grid=np.zeros((len(U),len(U))) 
         for alpha in range(len(U)):
             for beta in range(len(U)):
-                grid[alpha][beta]=gauge_latticeqcd.fn_eval_point_S(U, border+1, alpha, beta, border+1, betas[0], u0=1.)
+                grid[alpha][beta]=gauge_latticeqcd.fn_eval_point_S(U, border+1, alpha, beta, border+1, betas[0], u0=1.)     ### Plots the action. Can be made to plot plaquette value at a point
         ax.plot_wireframe(X, Y, grid)
         
         if i>= initial:
-            ax.plot_wireframe(X, Y, SP[border+1][:][:][border+1]*kappa, color='red')
+            ax.plot_wireframe(X, Y, SP[border+1][:][:][border+1]*kappa, color='red')    ### Unsure about the kappa part
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
@@ -154,7 +158,7 @@ def U_SP_fusion():
 
 
 
-value=U_SP_fusion()
+value=grapher()
 
 # in_fold='./Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
 # in_file=in_fold +  + 'link_' + action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_' + str(100)

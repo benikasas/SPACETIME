@@ -538,7 +538,7 @@ class lattice():
         return Action_1
     
 
-    ### I need to take the SPrime inside, and for each term take into account old coords
+    ### I need to take the SPrime inside, and for each term take into account old coords (I think this has been resolved)
     def action_2(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
         ### Returns the second line of eq. 22
         ### The fn. Plaq_approx already does everything, so this is a bit redundant
@@ -551,6 +551,8 @@ class lattice():
         Action_2=Plaquette_approximations * self.beta
         return Action_2
     
+    ### Returns third line of eq. 22.
+    ### Sends the old and new spacetime configurations and finds the difference based on the equation. Returns the updated Ricci scalar curvature as well.
     def action_3(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old):
         Ricci_nu=Relative_tools.Ricci(SPrime, t, x, y, z)
         Ricci_old=Relative_tools.Ricci(SP, t, x, y, z)
@@ -593,7 +595,6 @@ class lattice():
     def markov_chain_sweep(self, epsilon, magnitude_1, Ncfg, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
         ratio_accept = 0.
         matrices_length = len(matrices)
-        ################R_matrix=np.zeros(self.Nx, self.Ny)
         if save_name:
             output_1 = 'logs/' + save_name + '/link_' + save_name + '_'
             output_2 = 'Deformations/' + save_name + '/link_' + save_name + '_'
@@ -605,11 +606,12 @@ class lattice():
             plaquette = []
             u0_values = [self.u0]
         
-        
-        ### loop through all space time to thermalize the lattice with QCD before starting spacetime
         for i in range(Ncfg - 1):
             print('starting sweep ' + str(i+initial_cfg) + ':  ' + str(datetime.datetime.now()))
-            if i < thermal and initial_cfg < thermal:
+            ### loop through all space time to thermalize the lattice with QCD before starting spacetime computations
+            ### This part has been tested and is in agreement with the literature
+            ### The spacetime part of the code simplifies to this when no spacetime perturbations are performed.
+            if i < thermal and initial_cfg < thermal:   ### Checks whether the lattice has been thermalized before ~~~~##########~~~~~~~~#CHANGE TO XOR/OR
                 ### loop through spacetime dimensions
                 for t in range(self.Nt):
                     for x in range(self.Nx):
@@ -667,13 +669,18 @@ class lattice():
             else:
             ### loop through spacetime dimensions
                 print('Lets get this ready')
-                rich_array=np.zeros((self.Nt, self.Nx, self.Ny, self.Nz))
+                rich_array=np.zeros((self.Nt, self.Nx, self.Ny, self.Nz))   ### Initializes an array to hold the Ricci scalar curvature assigned to every point
                 for t in range(self.Nt):
                     for x in range(self.Nx):
                         for y in range(self.Ny):
                             for z in range(self.Nz):
+                                ### Was thinking about deforming the spacetime only once when I visit a site to potentially save up on computations
+                                ### This proved to be a bit tedious to do, so decided to deform the spacetime with every hit of LQCD computations
+                                ### This means that there are more spacetime deformations performed (better accuracy??)
+                                ### If you can't beat them, join them
+                                ### The 'for mu' part might be an issue, need to think about this
+
                                 # Generate a spacetime grid distortion
-                                
                                 ### Only add deformations if were inside the border
                                 # if t >= border and t < (self.Nt-border):
                                 #     if x >= border and x < (self.Nx-border):
@@ -699,18 +706,25 @@ class lattice():
                                         matrix = matrices[r]
                                         ### create U' and primed spacetime point
                                         Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
-                                        Ricci=0
-                                        SP_prime=self.SP 
+                                        Ricci=0     ### By default, Ricci curvature of unperturbed spacetime is 0.
+                                        ### The next couple of lines prepares the new spacetime (original spacetime perturbed at a point)
+                                        ### This is done only when the counter is inside the 'inner' spacetime matrix
+                                        SP_prime=self.SP
+                                        ### Need to figure out whether I need the less than or equal sign on the second parts of the conditions.
+                                        ### Shouldn't matter too much anyways if the border >= 3 I think
                                         if t >= border and t < self.Nt-border:
                                             if x >= border and x < self.Nx-border:
                                                 if y >= border and y < self.Ny-border:
                                                     if z >= border and z < self.Nz-border:
                                                         SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon, magnitude_1)
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices)
-                                                        ##dS = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
-                                                    ############# R_matrix[x, y]=Ricci
+                                        
+                                        ### On the borders of the lattice, the regular action is calculated
+                                        ### The same result would come out of dEH, as all the new components would get multiplied by the zero-valued space deformations
                                         else:
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
+
+                                        ### Accepts the deformation and the updated link values only if both the change in action is accepted and the Ricci scalar curvature is positive.
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
                                             if Ricci >= 0:
                                                 self.U[t, x, y, z, mu, :, :] = Uprime

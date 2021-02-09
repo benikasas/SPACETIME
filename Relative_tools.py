@@ -57,6 +57,8 @@ def create_su3_set(epsilon = 0.2, tot = 1000):
         matrices.append(X.conj().T)
     return matrices
 
+
+
 ### Dimensionless Kappa calculator
 def kappa_calc(aa):
     kappa=7.6*10**37*aa*aa  ### This was found using the kappa value (from constants) multiplied by lattice spacing^2
@@ -64,6 +66,7 @@ def kappa_calc(aa):
 
 ## A function to generate a single disturbance in Spacetime
 ## Need to adjust the magnitude of epsilon
+## Still too big??
 def Delta_gen(epsilon, magnitude_1):
     Delta=[0., 0., 0., 0.,]
     magnitude_2=epsilon/(magnitude_1)     ### Specify the magnitude of deformations
@@ -74,7 +77,7 @@ def Delta_gen(epsilon, magnitude_1):
 ## First order approximations of spacetime deformations in all directions
 ## Make a for loop in the future
 ## Could be combined with inv_jack
-## This finds the difference between the deformation at x' and x'- a * nu where nu is the direction vector
+## This finds the difference between the deformation at (x') and (x'- a * nu) where nu is the direction vector
 def first_approx_tool(SP, t, x, y, z):
     SP_og=SP[t, x, y, z, :]
     SP_t=SP[t+1, x, y, z, :]
@@ -108,14 +111,18 @@ def inv_Jack(SPrime, t, x, y, z):
 
 ### Finds the h matrix for the S_Prime matrix with given coordinates
 ### This is found using equation 23
+### The only non - zero elements of the sum will be the ones where (nu') = (mu') because of the flat spacetime metric
 def h_matrix_producinator(SPrime, coords):
     t=coords[0]
     x=coords[1]
     y=coords[2]
     z=coords[3]
-    jack=inv_Jack(SPrime, t, x, y, z)
+    jack=inv_Jack(SPrime, t, x, y, z)   ### Returns the Jacobian with the given coordinates in the given spacetime matrix
     h_matrix=np.zeros((4, 4))
     ### Diagonal terms
+    ### I am pretty sure the indices below are correct, though I might be wrong
+    ### Need to check it again
+    ### In the case that the indices are not correct, I can undo the transpose in inv_jack
     h_matrix[0, 0]=jack[0][0]*jack[0][0]+jack[1][0]*jack[1][0]+jack[2][0]*jack[2][0]+jack[3][0]*jack[3][0]-1
     h_matrix[1, 1]=jack[0][1]*jack[0][1]+jack[1][1]*jack[1][1]+jack[2][1]*jack[2][1]+jack[3][1]*jack[3][1]-1
     h_matrix[2, 2]=jack[0][2]*jack[0][2]+jack[1][2]*jack[1][2]+jack[2][2]*jack[2][2]+jack[3][2]*jack[3][2]-1
@@ -140,35 +147,39 @@ def h_matrix_producinator(SPrime, coords):
     return h_matrix
 
 ### Collects surrounding h matrices for given coordinates into a 4x4 matrix 
+### Returns the h matrices separated by two (not necessarily different) unit vectors
+### Returns also the h matrices separated by 1 unit vector from the origin
+### Lastly, returns the h matrix for the original coordinates
+### Could split into 3 different functions, but this saves 1 line of code I think
 def h_matrix_collectinator(SPrime, t, x, y, z):
     h_alphabeta=[[np.identity(4) for alph in range(4)] for beth in range(4)]    ### For h matrices where we add two lattice spacings from the origin
     h_alpha=[np.identity(4) for alph in range(4)]   ### For h matrices separated from origin by single lattice spacing
     coords=[t, x, y, z]
-    for alpha in range(4):
-        for beta in range(4):
-            coords[alpha]=+1
-            coords[beta]+=1
+    for alpha in range(4):      ### Used for first unit vector
+        for beta in range(4):   ### Used for the second unit vector
+            coords[alpha]=+1    ### Shifts one coordinate by 1
+            coords[beta]+=1     ### Shifts another coordinate by 1
             h_alphabeta[alpha][beta]=h_matrix_producinator(SPrime, coords)
-            coords[beta]-=1
+            coords[beta]-=1     ### Returns the second coordinate into the original position
         h_alpha[alpha]=h_matrix_producinator(SPrime, coords)
-        coords[alpha]-=1
+        coords[alpha]-=1        ### Returns the first coordinate
     h_og=h_matrix_producinator(SPrime, coords)      ### The h matrix for origin
     return h_alphabeta, h_alpha, h_og
 
 
-### Function to find the Ricci scalar curvature at a given point
+### Function to find the Ricci scalar curvature at a given point as given in eq. 26
 def Ricci(SPrime, t, x, y, z):
     h_alphabeta, h_alpha, h_og = h_matrix_collectinator(SPrime, t, x, y, z)
     h_alphabeta=np.array(h_alphabeta)
     h_alpha=np.array(h_alpha)
     h_og=np.array(h_og)
-    R_alphabeta=0
-    R_alpha=0
-    R_og=0
-    R_2_betabeta=0
-    R_betabeta=0
-    R_og_betabeta=0
-    Ricci_scalar=0
+    R_alphabeta=0       ### Used for first term of the sum (1st partial sum)
+    R_alpha=0           ### 2nd term and 3rd term summed up
+    R_og=0              ### 4th term
+    R_2_betabeta=0      ### 5th term
+    R_betabeta=0        ### 6th term
+    R_og_betabeta=0     ### 7th term
+    Ricci_scalar=0      ### The final sum
     # ### First term of eq 26
     # for alpha in range(4):
     #     for beta in range(4):
@@ -186,33 +197,32 @@ def Ricci(SPrime, t, x, y, z):
     for alpha in range(4):
         for beta in range(4):
             R_alpha=R_alpha+h_alpha[alpha, alpha, beta]
-            R_alpha=R_alpha+h_alpha[alpha, beta, alpha]
+            R_alpha=R_alpha+h_alpha[alpha, beta, alpha]     ### I cut some corners, h_(alpha, beta)(x+a*beta)=h_(beta, alpha)(x+a*beta) as we sum over all alphas and betas
     ### 4th term of eq 26
     for i in range(4):
         for j in range(4):
             R_og=R_og+h_og[i, j]
     ### 5th
     for alpha in range(4):
-        R_2_betabeta=R_2_betabeta+np.trace(h_alphabeta[alpha, alpha])
+        R_2_betabeta=R_2_betabeta+np.trace(h_alphabeta[alpha, alpha])   ### For every alpha, the h_(beta, beta) will return the trace when summed over beta
     ### 6th
     for alpha in range(4):
-        R_betabeta=R_betabeta+np.trace(h_alpha[alpha])
+        R_betabeta=R_betabeta+np.trace(h_alpha[alpha])      ### Same as above
     ### 8th
     R_og_betabeta=np.trace(h_og)
-    Ricci_scalar=R_alphabeta-R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta
+    Ricci_scalar=R_alphabeta-R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta   ### Finds the total sum
     return Ricci_scalar
 
 ### First order approximation of the plaquette. 
-### I put the Delta inside the summation, so that I wouldn't have to define another function and restructure gauge_latticeqcd
-### Returns only the deltaP, a 4 vector. I still have to contract with the Delta (deformation), which is done in deltaSEH
+### I put the Delta inside the summation of eq. 22, so that I wouldn't have to define another function and restructure gauge_latticeqcd
 def Plaq_approx(self, t, x, y, z, matrices, SPrime):
     matrices_length = len(matrices)
     Plaquette_approximations=[0., 0., 0., 0.]
     Action_1=0
     coords=[t, x, y, z]
     for ro in range(4):
-        coords[ro]+=1
-        for mu in range(4):
+        coords[ro]+=1       ### Pushes the coordinates by one lattice link to each direction
+        for mu in range(4): ### Maybe its this mu that causes such a significant difference??
             ### This part uses the code from gauge_latticeqcd
             r = np.random.randint(0, matrices_length) 
             matrix = matrices[r]
