@@ -11,15 +11,8 @@ from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0, border, magnitu
 
 
 ## Settings
-# Nt = 8
-# Nx = 8
-# Ny = 8
-# Nz = 8
-# action = 'W'
-# beta = 5.5
-# u0 = 1.0
 Nstart = 1
-Nend = 190
+Nend = 18
 beta=betas[0]
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ Nt = 10
 Nx = 10
 Ny = 10
 Nz = 10
-Ncfg = 1000         # number of lattices to generate
+Ncfg = 20         # number of lattices to generate
 action = 'W'        ########## Spacetime part implemented only for Wilson action    
 betas = [5.7]       # betas to be generated, beta = 6/g^2
 startcfg = 0       # warm start (0) or existing cfg number to start the Markov chain
@@ -28,7 +28,7 @@ threads = 4         # threads used in multiprocessing
 Nu0_step = 1        # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1         # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.             # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
-thermal = 100         # Number of configurations before starting the general relativity part
+thermal = 1         # Number of configurations before starting the general relativity part
 border = 4            # Defines edges over which there will be no spacetime deformations, and the action will come from LQCD only
 magnitude_1 = 10**(19)  # Defines the magnitude of spacetime deformations
 

@@ -7,6 +7,7 @@ import tools_v1 as tool
 import datetime
 import params
 import Relative_tools
+import copy
 
 ### File with Lattice class to sweep and generate lattices and functions: 
 ### plaquette, average plaquette, polyakov, planar and non-planar wilson loops, wilson action,
@@ -329,7 +330,7 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, 
         U = lattice(Nt, Nx, Ny, Nz, beta, u0)
     else:
         #print(action)
-        U = lc.fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, startcfg, "./logs/")
+        U = lc.fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, startcfg, border, magnitude_1, "./logs/")
         U = lattice(Nt, Nx, Ny, Nz, beta, u0, U)
     ### I could implement something like above for spacetime deformations, but right now the code should work, and if startcfg =! 0, it recalculates the last iteration
     
@@ -512,30 +513,38 @@ class lattice():
 
     ### Difference of action at a point for fixed staple. Gets link, updated link, and staple A.
     def deltaS(self, link, updated_link, staple):
-        return (-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link - link), staple)))
+        Lqcd_nu=0.
+        Lqcd_old=0.
+        Lqcd_nu=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
+        Lqcd_old=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
+        return Lqcd_nu-Lqcd_old
+        # return (-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link - link), staple)))
 
     
     ### Finds the Einstein - Hilbert action
-    def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
+    def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, mu):
         approx_nu=Relative_tools.first_approx_tool(SPrime, t, x, y, z)      ### Returns the approximation value for the new iteration of spacetime deformations
         approx_old=Relative_tools.first_approx_tool(SP, t, x, y, z)         ### Returns the old approximation value for spacetime deformation
-
         ### The next three lines actually find the difference in action between old and new values of action.
         ### In hindsight, I have no idea why I've done it this way
         ### I could have saved up some lines by sending the old configuration and the new one, and finding the difference in action in the end. 
-        Action_1=self.action_1(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old)    ### Returns the first line of eq.22 of spacetime note
+        Action_1=self.action_1(self.U[x, t, y, z, mu, :, :], updated_link, staple, t, x, y, z, approx_nu, approx_old)    ### Returns the first line of eq. 22 of spacetime note
         Action_2=self.action_2(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices)   ### Returns the second line of eq. 22
         Action_3, Ricci=self.action_3(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old) ### Third line of eq. 22
-        
-        Action=Action_1+Action_2+Action_3       ### Finds the sum of the actions
+        #################################ACTION 3 RETURNS 0 ALWAYS NEED FIX
+        print(SP[t, x, y, z, :])
+        print(SPrime[t, x, y, z, :])
+        Action=Action_1+Action_2#+Action_3       ### Finds the sum of the actions
         return Action, Ricci
 
-    def action_1(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old):
+    def action_1(self, link, updated_link, staple, t, x, y, z, approx_nu, approx_old):
         ### Expanded the difference into two lines
-        Lqcd_nu=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
-        Lqcd_old=(self.beta * (1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
+        Lqcd_nu=0.
+        Lqcd_old=0.
+        Lqcd_nu=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
+        Lqcd_old=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
         Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old  ### Finds the difference in the actions (first line in eq. 22)
-        return Action_1
+        return Lqcd_nu-Lqcd_old
     
 
     ### I need to take the SPrime inside, and for each term take into account old coords (I think this has been resolved)
@@ -543,16 +552,12 @@ class lattice():
         ### Returns the second line of eq. 22
         ### The fn. Plaq_approx already does everything, so this is a bit redundant
         Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices, SPrime)
-        
-        # Action_2=0
-        # for alpha in range(4):
-        #     Action_2=Action_2 + SPrime[t, x, y, z, alpha] + Plaquette_approximations[alpha]
-        # Action_2=Action_2 * self.beta
         Action_2=Plaquette_approximations * self.beta
         return Action_2
     
     ### Returns third line of eq. 22.
-    ### Sends the old and new spacetime configurations and finds the difference based on the equation. Returns the updated Ricci scalar curvature as well.
+    ### Sends the old and new spacetime configurations and finds the difference based on the equation. 
+    ### Returns the updated Ricci scalar curvature as well.
     def action_3(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old):
         Ricci_nu=Relative_tools.Ricci(SPrime, t, x, y, z)
         Ricci_old=Relative_tools.Ricci(SP, t, x, y, z)
@@ -611,7 +616,7 @@ class lattice():
             ### loop through all space time to thermalize the lattice with QCD before starting spacetime computations
             ### This part has been tested and is in agreement with the literature
             ### The spacetime part of the code simplifies to this when no spacetime perturbations are performed.
-            if i < thermal and initial_cfg < thermal:   ### Checks whether the lattice has been thermalized before ~~~~##########~~~~~~~~#CHANGE TO XOR/OR
+            if i < thermal and initial_cfg < thermal:   ### Checks whether the lattice has been thermalized before ~~~~##########~~~~~~~~# Somethings wrong, need to test it later on
                 ### loop through spacetime dimensions
                 for t in range(self.Nt):
                     for x in range(self.Nx):
@@ -709,7 +714,7 @@ class lattice():
                                         Ricci=0     ### By default, Ricci curvature of unperturbed spacetime is 0.
                                         ### The next couple of lines prepares the new spacetime (original spacetime perturbed at a point)
                                         ### This is done only when the counter is inside the 'inner' spacetime matrix
-                                        SP_prime=self.SP
+                                        SP_prime=copy.deepcopy(self.SP[:, :, :, :, :])
                                         ### Need to figure out whether I need the less than or equal sign on the second parts of the conditions.
                                         ### Shouldn't matter too much anyways if the border >= 3 I think
                                         if t >= border and t < self.Nt-border:
@@ -717,14 +722,21 @@ class lattice():
                                                 if y >= border and y < self.Ny-border:
                                                     if z >= border and z < self.Nz-border:
                                                         SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon, magnitude_1)
-                                                        dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices)
+                                                        dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices, mu)
+                                                    else:
+                                                        dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
+                                                else:
+                                                    dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
+                                            else:
+                                                dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
+                                        else:
+                                            dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         
                                         ### On the borders of the lattice, the regular action is calculated
                                         ### The same result would come out of dEH, as all the new components would get multiplied by the zero-valued space deformations
-                                        else:
-                                            dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
 
                                         ### Accepts the deformation and the updated link values only if both the change in action is accepted and the Ricci scalar curvature is positive.
+                                        ### In the case when we're on the edge, still performs the test as Ricci = 0
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
                                             if Ricci >= 0:
                                                 self.U[t, x, y, z, mu, :, :] = Uprime
@@ -760,11 +772,6 @@ class lattice():
                     file_out_3=open(output_idx_3, 'wb')
                     np.save(file_out_3, rich_array)
                     sys.stdout.flush()
-
-
-                    ############################################################## Set up output files for deformations
-
-
             
         ratio_accept = float(ratio_accept) / Ncfg / self.Nx / self.Ny / self.Nz / self.Nt / 4. / Nhits
         if action[-1:] == 'T':

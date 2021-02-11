@@ -9,31 +9,28 @@ import gauge_latticeqcd
 import matplotlib as cm
 import tools_v1
 import Relative_tools
-# from plaq_v_cfg import *
 
+### NEEDS MORE COMMENTS, IT'S VERY MESSY BUT IT WORKS
 
 beta=betas[0]
-# data=np.loadtxt(r'plaquette_v_cfg_570_14x14x14x14_W.dat',dtype=float,delimiter=' ',skiprows=0)
-# cfgno=np.loadtxt(r'plaquette_v_cfg_570_14x14x14x14_W.dat',dtype=float,delimiter=' ',skiprows=1,usecols=(0,))
-# plaq=np.loadtxt(r'plaquette_v_cfg_570_14x14x14x14_W.dat',dtype=float,delimiter=' ',skiprows=1,usecols=(1,))
-
-
-## Settings
-# Nstart = 1
-# Nend = 1790
-
-
 ## Uses the settings to generate the name for the selected data from relevant file.
-U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
 
 ## Function to graph the plaquette values against configuration number
-def grapher():
+def grapher_plaq():
+    U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
     data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
     rendername = './images/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
     lineplot=pygal.XY(stroke=False, show_legend=False, background='grey', range=(0.2, 0.6))
     lineplot.add('line', data[:])
     lineplot.render_to_file(rendername + '.svg')
 
+def grapher_ac():
+    U_infile='./dats/S_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
+    data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
+    rendername = './images/S_v_cfg_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
+    lineplot=pygal.XY(stroke=False, show_legend=False, background='grey')#, range=(0.2, 0.6))
+    lineplot.add('line', data[:])
+    lineplot.render_to_file(rendername + '.svg')
 
 ## Function to run various analyses on the file
 ## Very outdated, needs a heavy upgrade
@@ -158,8 +155,11 @@ def U_SP_fusion():
 
 
 
-value=grapher()
+value=grapher_plaq()
 
-# in_fold='./Deformations/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
-# in_file=in_fold +  + 'link_' + action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_' + str(100)
-# SP_deformations=np.loadtxt(in_file, dtype=float)
+
+def lagrangian_test():
+    dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_2 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_3 = './Fusion/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'

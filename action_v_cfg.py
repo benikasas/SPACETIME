@@ -4,19 +4,12 @@ import numpy as np
 import tools_v1 as tool
 import gauge_latticeqcd as gl
 import params
-from generate import Nx, Ny, Nz, Nt, action, u0, betas
+from generate import Nx, Ny, Nz, Nt, action, u0, betas, border, magnitude_1
 
 
 ### Script to calculate the evolution of the action as a function of Monte Carlo time
-# Nx = 14
-# Ny = 14
-# Nz = 14
-# Nt = 14
-# action = 'W'
-# beta = 5.7
-# u0 = 1.0
 Nstart = 0
-Nend = 109
+Nend = 10
 
 beta=betas[0]
 #@numba.njit
@@ -37,12 +30,12 @@ def calc_S(U):
     return S
 
 
-dir = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '/'
-U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_'
+dir = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
 
 
 ### prepare output file
-outfile = './logs/S_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '.dat'
+outfile = './dats/S_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
 fout = open(outfile, 'a')
 
 fout.write('#1:cfg  2:S\n')

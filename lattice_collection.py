@@ -26,8 +26,8 @@ def fn_lattice_collection(action, Nt, Nx, Ny, Nz, beta, start, end, step = 1, pa
 
 ### Loads configuration given the action, dimensions, beta and number of configurations.
 ### Configuration must be in folder in same directory.
-def fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, cfg, path = ""):
-    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))
+def fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, cfg, border, magnitude_1, path = ""):
+    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))   + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
     tmp = np.load(path + name + '/link_' + name + '_' + str(cfg))
     U = [[[[[0 for mu in range(4)] for z in range(Nz)] for y in range(Ny)] for x in range(Nx)] for t in range(Nt)]
     for t in range(Nt):

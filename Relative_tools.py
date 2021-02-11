@@ -71,7 +71,7 @@ def Delta_gen(epsilon, magnitude_1):
     Delta=[0., 0., 0., 0.,]
     magnitude_2=epsilon/(magnitude_1)     ### Specify the magnitude of deformations
     for i in range(len(Delta)): 
-        Delta[i]=np.random.uniform(-magnitude_2, magnitude_2) 
+        Delta[i]=np.random.uniform(-magnitude_2, magnitude_2)
     return Delta
 
 ## First order approximations of spacetime deformations in all directions
@@ -218,7 +218,7 @@ def Ricci(SPrime, t, x, y, z):
 def Plaq_approx(self, t, x, y, z, matrices, SPrime):
     matrices_length = len(matrices)
     Plaquette_approximations=[0., 0., 0., 0.]
-    Action_1=0
+    Action_2=0
     coords=[t, x, y, z]
     for ro in range(4):
         coords[ro]+=1       ### Pushes the coordinates by one lattice link to each direction
@@ -232,6 +232,6 @@ def Plaq_approx(self, t, x, y, z, matrices, SPrime):
             # Plaquette_approximations[ro]=(-1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link - link), staple)))
             Lqcd_nu=(1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple)))))  ####### Expanded the difference into two lines
             Lqcd_old=(1 - ((1 / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))
-            Action_1=Action_1+SPrime[t, x, y, z, ro]*Lqcd_nu-self.SP[t, x, y, z, ro]*Lqcd_old
+            Action_2=Action_2+SPrime[t, x, y, z, ro]*Lqcd_nu-self.SP[t, x, y, z, ro]*Lqcd_old
         coords[ro]-=1
-    return Action_1
+    return Action_2
