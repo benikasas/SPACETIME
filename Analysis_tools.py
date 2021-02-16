@@ -53,11 +53,11 @@ def statistician():
 ### This is done by fixing two coordinates and plotting the Ricci curvature against the other two coordinates
 
 def SP_slicer():
-    end=230
-    beta=5.7
-    dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    dir_2 = './Rich_images/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_'
+    end=20
+    # beta=5.7
+    dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_2 = './Rich_images/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
     for i in range(end - thermal):
 
         idx=i+thermal
@@ -80,10 +80,10 @@ def SP_slicer():
 
 ### Same as above but for LQCD part
 def U_slicer():
-    end=230
-    dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    dir_2 = './Plaq_images/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '/'
-    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_'
+    end=20
+    dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_2 = './Plaq_images/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
     for i in range(end - thermal):
 
         idx=i+thermal
@@ -114,12 +114,12 @@ def U_slicer():
 
 ### Combines the above two functions into a single one
 def U_SP_fusion():
-    end=230     ### Don't really need this, as without it, after running out of configurations, returns an error
+    end=500     ### Don't really need this, as without it, after running out of configurations, returns an error
     dir_1 = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     dir_2 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     dir_3 = './Fusion/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
-    initial=5   ### Number of configurations to plot before plotting the spacetime part
+    initial=200   ### Number of configurations to plot before plotting the spacetime part
     bet=betas[0]
     aa=tools_v1.fn_a(bet)
     kappa=Relative_tools.kappa_calc(aa)
@@ -152,10 +152,11 @@ def U_SP_fusion():
             os.mkdir(dir_3)
         out_file= dir_3 + U_infile + '_' + str(idx)
         fig.savefig(out_file)
+        plt.clf()
 
 
 
-value=grapher_plaq()
+value=U_SP_fusion()
 
 
 def lagrangian_test():

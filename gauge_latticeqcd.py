@@ -309,7 +309,7 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, 
     ###  1. initialize to warm start by using random collection of SU(3) links, or
     ###  2. read in a previously generated configuration and continue with that Markov chain.
 
-    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))  + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
+    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))  + '_border_' + str(border) + '_magnitude_' + str(magnitude_1)
     aa = tool.fn_a( beta ) ### returns lattice spacing calculated for the beta value
     kappa = Relative_tools.kappa_calc(aa)   ### Returns the lattice adjusted kappa value
 
@@ -363,10 +363,11 @@ class lattice():
         self.Nt = Nt
         aa = tool.fn_a( beta ) ### returns lattice spacing calculated for the beta value
         self.kappa=Relative_tools.kappa_calc(aa)
+        self.aa=aa
         ### Create a separate matrix for spacetime deformations, which is the zero matrix initially (there are no deformations).
         if None == SP:
-            SP=np.zeros((Nt, Nx, Ny, Nz, 4))
-        self.SP = np.array(SP)
+            SP=np.zeros((Nt, Nx, Ny, Nz, 4), dtype='double')
+        self.SP = np.array(SP, dtype='double')
 
 
 
@@ -518,8 +519,6 @@ class lattice():
         Lqcd_nu=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
         Lqcd_old=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
         return Lqcd_nu-Lqcd_old
-        # return (-self.beta / 3.0 / self.u0 ) * np.real(np.trace(np.dot( (updated_link - link), staple)))
-
     
     ### Finds the Einstein - Hilbert action
     def deltaSEH(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, mu):
@@ -528,23 +527,33 @@ class lattice():
         ### The next three lines actually find the difference in action between old and new values of action.
         ### In hindsight, I have no idea why I've done it this way
         ### I could have saved up some lines by sending the old configuration and the new one, and finding the difference in action in the end. 
-        Action_1=self.action_1(self.U[x, t, y, z, mu, :, :], updated_link, staple, t, x, y, z, approx_nu, approx_old)    ### Returns the first line of eq. 22 of spacetime note
+        Action_1=self.action_1(self.U[x, t, y, z, mu, :, :], updated_link, staple, approx_nu, approx_old)    ### Returns the first line of eq. 22 of spacetime note
         Action_2=self.action_2(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices)   ### Returns the second line of eq. 22
-        Action_3, Ricci=self.action_3(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old) ### Third line of eq. 22
-        #################################ACTION 3 RETURNS 0 ALWAYS NEED FIX
-        print(SP[t, x, y, z, :])
-        print(SPrime[t, x, y, z, :])
-        Action=Action_1+Action_2#+Action_3       ### Finds the sum of the actions
+        Action_3, Ricci=self.action_3(SP, SPrime, t, x, y, z, approx_nu, approx_old) ### Third line of eq. 22
+        Action_4=self.action_4(SP, SPrime, t, x, y, z)
+        Action=Action_1+Action_2+Action_3+Action_4       ### Finds the sum of the actions
+        # print(approx_nu)
+        # print(approx_old)
+        # print(self.aa)
+        # print('Action 1: ', Action_1)
+        # print('Action 2: ', Action_2)
+        # print('Action 3: ', Action_3)
+        # print('Action 4: ', Action_4)
+        # print('Ricci ', Ricci)
+        # if (np.exp(-1. * Action) > np.random.uniform(0, 1)):
+        #     if Ricci >= 0:
+        #         print('AAAAAAAAAAAAAA', Ricci)
+        # print(Action)
         return Action, Ricci
 
-    def action_1(self, link, updated_link, staple, t, x, y, z, approx_nu, approx_old):
+    def action_1(self, link, updated_link, staple, approx_nu, approx_old): 
         ### Expanded the difference into two lines
         Lqcd_nu=0.
         Lqcd_old=0.
         Lqcd_nu=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
         Lqcd_old=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
         Action_1=(1-approx_nu)*Lqcd_nu-(1-approx_old)*Lqcd_old  ### Finds the difference in the actions (first line in eq. 22)
-        return Lqcd_nu-Lqcd_old
+        return Action_1
     
 
     ### I need to take the SPrime inside, and for each term take into account old coords (I think this has been resolved)
@@ -558,11 +567,23 @@ class lattice():
     ### Returns third line of eq. 22.
     ### Sends the old and new spacetime configurations and finds the difference based on the equation. 
     ### Returns the updated Ricci scalar curvature as well.
-    def action_3(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices, approx_nu, approx_old):
+    def action_3(self, SP, SPrime, t, x, y, z, approx_nu, approx_old):
         Ricci_nu=Relative_tools.Ricci(SPrime, t, x, y, z)
         Ricci_old=Relative_tools.Ricci(SP, t, x, y, z)
         Action_3=(1-approx_nu)*self.kappa*Ricci_nu-(1-approx_old)*Ricci_old*self.kappa
         return Action_3, Ricci_nu
+
+    def action_4(self, SP, SPrime, t, x, y, z):
+        coords=[t, x, y, z]
+        Action_4=0.
+        for alpha in range(4):
+            coords[alpha]+=1
+            Ricci_nu=Relative_tools.Ricci(SPrime, coords[0], coords[1], coords[2], coords[3])
+            Ricci_old=Relative_tools.Ricci(SP, coords[0], coords[1], coords[2], coords[3])
+            Action_4=Action_4-self.kappa*SPrime[coords[0], coords[1], coords[2], coords[3], alpha]*Ricci_nu+self.kappa*SP[coords[0], coords[1], coords[2], coords[3], alpha]*Ricci_old
+            coords[alpha]-=1
+        return Action_4
+
 
     #@numba.njit
     def plaquette(self, t, x, y, z, mu, nu):
@@ -715,6 +736,7 @@ class lattice():
                                         ### The next couple of lines prepares the new spacetime (original spacetime perturbed at a point)
                                         ### This is done only when the counter is inside the 'inner' spacetime matrix
                                         SP_prime=copy.deepcopy(self.SP[:, :, :, :, :])
+                                        SP_prime=np.array(SP_prime, dtype='double')
                                         ### Need to figure out whether I need the less than or equal sign on the second parts of the conditions.
                                         ### Shouldn't matter too much anyways if the border >= 3 I think
                                         if t >= border and t < self.Nt-border:
@@ -723,6 +745,7 @@ class lattice():
                                                     if z >= border and z < self.Nz-border:
                                                         SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon, magnitude_1)
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices, mu)
+                                                        # print(SP_prime[t, x, y, z, :])
                                                     else:
                                                         dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                                 else:
@@ -740,7 +763,7 @@ class lattice():
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
                                             if Ricci >= 0:
                                                 self.U[t, x, y, z, mu, :, :] = Uprime
-                                                self.SP[t, x, y, z, :]=SP_prime[t, x, y, z, :]
+                                                self.SP[t, x, y, z, :]=copy.deepcopy(SP_prime[t, x, y, z, :])
                                                 ratio_accept += 1
                                                 rich_array[t, x, y, z] = Ricci
                                         # else:
