@@ -2,9 +2,9 @@ import numpy as np
 #from generate import Nt, Nx, Ny, Nz, action, epsilon, u0
 import tools_v1
 import mpmath as mp
-import decimal as dp
-import sympy as sp
-    
+# import decimal as dp
+# import sympy as sp
+### The above modules do not work or at least very tricky to implement for arbitrary precision float calculations    
 
 
 
@@ -99,7 +99,7 @@ def first_approx_tool(SP, t, x, y, z):
 ### Esentially its a deformation matrix with an identity added
 ### Could add a for loop as well
 def inv_Jack(SP, t, x, y, z):
-    mp.mp.dps = 50
+    mp.mp.dps = 45
     # jack=mp.matrix(4, 4)
     SP_og=SP[t, x, y, z, :]
     SP_t=SP[t+1, x, y, z, :]
@@ -126,7 +126,7 @@ def inv_Jack(SP, t, x, y, z):
     # for i in range(4):
     #     jack[3, i]=mp.mpf(SP_z[i]-SP_og[i])
     for alpha in range(4):
-        jack[alpha, alpha]=mp.fadd(1, jack[alpha, alpha], dps=29)
+        jack[alpha, alpha]=mp.fadd(1, jack[alpha, alpha], dps=45)
 
     jack=jack.T
     jack=jack**-1
@@ -144,43 +144,68 @@ def h_matrix_producinator(SPrime, coords):
     y=coords[2]
     z=coords[3]
     jack=inv_Jack(SPrime, t, x, y, z)   ### Returns the Jacobian with the given coordinates in the given spacetime matrix
-    h_matrix=np.zeros((4, 4), dtype='double')
     ### Diagonal terms
     ### I am pretty sure the indices below are correct, though I might be wrong
     ### Need to check it again
     # ### In the case that the indices are not correct, I can undo the transpose in inv_jack
-    h_matrix[0, 0]=jack[0, 0]*jack[0, 0]+jack[1, 0]*jack[1, 0]+jack[2, 0]*jack[2, 0]+jack[3, 0]*jack[3, 0]
-    h_matrix[1, 1]=jack[0, 1]*jack[0, 1]+jack[1, 1]*jack[1, 1]+jack[2, 1]*jack[2, 1]+jack[3, 1]*jack[3, 1]
-    h_matrix[2, 2]=jack[0, 2]*jack[0, 2]+jack[1, 2]*jack[1, 2]+jack[2, 2]*jack[2, 2]+jack[3, 2]*jack[3, 2]
-    h_matrix[3, 3]=jack[0, 3]*jack[0, 3]+jack[1, 3]*jack[1, 3]+jack[2, 3]*jack[2, 3]+jack[3, 3]*jack[3, 3]
-    h_matrix[0, 0]=mp.fadd(-1, h_matrix[0, 0], dps=50)
+    # h_matrix=np.zeros((4,4))
+    # h_matrix[0, 0]=jack[0, 0]*jack[0, 0]+jack[1, 0]*jack[1, 0]+jack[2, 0]*jack[2, 0]+jack[3, 0]*jack[3, 0]
+    # h_matrix[1, 1]=jack[0, 1]*jack[0, 1]+jack[1, 1]*jack[1, 1]+jack[2, 1]*jack[2, 1]+jack[3, 1]*jack[3, 1]
+    # h_matrix[2, 2]=jack[0, 2]*jack[0, 2]+jack[1, 2]*jack[1, 2]+jack[2, 2]*jack[2, 2]+jack[3, 2]*jack[3, 2]
+    # h_matrix[3, 3]=jack[0, 3]*jack[0, 3]+jack[1, 3]*jack[1, 3]+jack[2, 3]*jack[2, 3]+jack[3, 3]*jack[3, 3]
+
+    # ### I am pretty sure the matrix is going to be symmetric.
+    # h_matrix[0, 1]=jack[0, 0]*jack[0, 1]+jack[1, 0]*jack[1, 1]+jack[2, 1]*jack[2, 1]+jack[3, 0]*jack[3, 1]
+    # h_matrix[0, 2]=jack[0, 0]*jack[0, 2]+jack[1, 0]*jack[1, 2]+jack[2, 2]*jack[2, 2]+jack[3, 0]*jack[3, 2]
+    # h_matrix[0, 3]=jack[0, 0]*jack[0, 3]+jack[1, 0]*jack[1, 3]+jack[2, 3]*jack[2, 3]+jack[3, 0]*jack[3, 3]
+    # h_matrix[1, 0]=h_matrix[0, 1]
+    # h_matrix[2, 0]=h_matrix[0, 2]
+    # h_matrix[3, 0]=h_matrix[0, 3]
+
+    # h_matrix[1, 2]=jack[0, 1]*jack[0, 2]+jack[1, 1]*jack[1, 2]+jack[2, 1]*jack[2, 2]+jack[3, 1]*jack[3, 2]
+    # h_matrix[1, 3]=jack[0, 1]*jack[0, 3]+jack[1, 1]*jack[1, 3]+jack[2, 1]*jack[2, 3]+jack[3, 1]*jack[3, 3]
+    # h_matrix[2, 1]=h_matrix[1, 2]
+    # h_matrix[3, 1]=h_matrix[1, 3]
+
+    # h_matrix[2, 3]=jack[0, 2]*jack[0, 3]+jack[1, 2]*jack[1, 3]+jack[2, 2]*jack[2, 3]+jack[3, 2]*jack[3, 3]
+    # h_matrix[3, 2]=h_matrix[2, 3]
+    # storage=h_matrix
+
+
+    h_matrix=mp.matrix(4, 4)
+    h_matrix[0, 0]=mp.fadd(mp.fmul(jack[0, 0], jack[0, 0]), mp.fadd(mp.fmul(jack[1, 0], jack[1, 0]), mp.fadd(mp.fmul(jack[2, 0], jack[2, 0]), mp.fmul(jack[3, 0], jack[3, 0]))))
+    h_matrix[1, 1]=mp.fadd(mp.fmul(jack[0, 1], jack[0, 1]), mp.fadd(mp.fmul(jack[1, 1], jack[1, 1]), mp.fadd(mp.fmul(jack[2, 1], jack[2, 1]), mp.fmul(jack[3, 1], jack[3, 1]))))
+    h_matrix[2, 2]=mp.fadd(mp.fmul(jack[0, 2], jack[0, 2]), mp.fadd(mp.fmul(jack[1, 2], jack[1, 2]), mp.fadd(mp.fmul(jack[2, 2], jack[2, 2]), mp.fmul(jack[3, 2], jack[3, 2]))))
+    h_matrix[3, 3]=mp.fadd(mp.fmul(jack[0, 3], jack[0, 3]), mp.fadd(mp.fmul(jack[1, 3], jack[1, 3]), mp.fadd(mp.fmul(jack[2, 3], jack[2, 3]), mp.fmul(jack[3, 3], jack[3, 3]))))
+    h_matrix[0, 0]=mp.fadd(-1, h_matrix[0, 0], dps=50)       ################ADDING 1 because its in the metric??
     h_matrix[1, 1]=mp.fadd(-1, h_matrix[1, 1], dps=50)
     h_matrix[2, 2]=mp.fadd(-1, h_matrix[2, 2], dps=50)
     h_matrix[3, 3]=mp.fadd(-1, h_matrix[3, 3], dps=50)
 
+    h_matrix[0, 1]=mp.fadd(mp.fmul(jack[0, 0], jack[0, 1]), mp.fadd(mp.fmul(jack[1, 0], jack[1, 1]), mp.fadd(mp.fmul(jack[2, 0], jack[2, 1]), mp.fmul(jack[3, 0], jack[3, 1]))))
+    h_matrix[0, 2]=mp.fadd(mp.fmul(jack[0, 0], jack[0, 2]), mp.fadd(mp.fmul(jack[1, 0], jack[1, 2]), mp.fadd(mp.fmul(jack[2, 0], jack[2, 2]), mp.fmul(jack[3, 0], jack[3, 2]))))
+    h_matrix[0, 3]=mp.fadd(mp.fmul(jack[0, 0], jack[0, 3]), mp.fadd(mp.fmul(jack[1, 0], jack[1, 3]), mp.fadd(mp.fmul(jack[2, 0], jack[2, 3]), mp.fmul(jack[3, 0], jack[3, 3]))))
+    h_matrix[1, 0]=h_matrix[0, 1]
+    h_matrix[2, 0]=h_matrix[0, 2]
+    h_matrix[3, 0]=h_matrix[0, 3]
+    h_matrix[1, 2]=mp.fadd(mp.fmul(jack[0, 1], jack[0, 2]), mp.fadd(mp.fmul(jack[1, 1], jack[1, 2]), mp.fadd(mp.fmul(jack[2, 1], jack[2, 2]), mp.fmul(jack[3, 1], jack[3, 2]))))
+    h_matrix[1, 3]=mp.fadd(mp.fmul(jack[0, 1], jack[0, 3]), mp.fadd(mp.fmul(jack[1, 1], jack[1, 3]), mp.fadd(mp.fmul(jack[2, 1], jack[2, 3]), mp.fmul(jack[3, 1], jack[3, 3]))))
+    h_matrix[2, 1]=h_matrix[1, 2]
+    h_matrix[3, 1]=h_matrix[1, 3]
+    h_matrix[2, 3]=mp.fadd(mp.fmul(jack[0, 2], jack[0, 3]), mp.fadd(mp.fmul(jack[1, 2], jack[1, 3]), mp.fadd(mp.fmul(jack[2, 2], jack[2, 3]), mp.fmul(jack[3, 2], jack[3, 3]))))
+    h_matrix[3, 2]=h_matrix[2, 3]
+
+    A=np.zeros((4, 4))
+    for i in range(4):
+        for j in range(4):
+            A[i, j]=float(h_matrix[i, j])
+    ### Converts h_matrix into a numpy array, faster, easier, 
     # h_matrix[0, 0]=jack[1][0]*jack[1][0]+jack[2][0]*jack[2][0]+jack[3][0]*jack[3][0]
     # h_matrix[1, 1]=jack[0][1]*jack[0][1]+jack[2][1]*jack[2][1]+jack[3][1]*jack[3][1]
     # h_matrix[2, 2]=jack[0][2]*jack[0][2]+jack[1][2]*jack[1][2]+jack[3][2]*jack[3][2]
     # h_matrix[3, 3]=jack[0][3]*jack[0][3]+jack[1][3]*jack[1][3]+jack[2][3]*jack[2][3]
 
-
-    ### I am pretty sure the matrix is going to be symmetric.
-    h_matrix[0, 1]=jack[0, 0]*jack[0, 1]+jack[1, 0]*jack[1, 1]+jack[2, 1]*jack[2, 1]+jack[3, 0]*jack[3, 1]
-    h_matrix[0, 2]=jack[0, 0]*jack[0, 2]+jack[1, 0]*jack[1, 2]+jack[2, 2]*jack[2, 2]+jack[3, 0]*jack[3, 2]
-    h_matrix[0, 3]=jack[0, 0]*jack[0, 3]+jack[1, 0]*jack[1, 3]+jack[2, 3]*jack[2, 3]+jack[3, 0]*jack[3, 3]
-    h_matrix[1, 0]=h_matrix[0, 1]
-    h_matrix[2, 0]=h_matrix[0, 2]
-    h_matrix[3, 0]=h_matrix[0, 3]
-
-
-    h_matrix[1, 2]=jack[0, 1]*jack[0, 2]+jack[1, 1]*jack[1, 2]+jack[2, 1]*jack[2, 2]+jack[3, 1]*jack[3, 2]
-    h_matrix[1, 3]=jack[0, 1]*jack[0, 3]+jack[1, 1]*jack[1, 3]+jack[2, 1]*jack[2, 3]+jack[3, 1]*jack[3, 3]
-    h_matrix[2, 1]=h_matrix[1, 2]
-    h_matrix[3, 1]=h_matrix[1, 3]
-
-    h_matrix[2, 3]=jack[0, 2]*jack[0, 3]+jack[1, 2]*jack[1, 3]+jack[2, 2]*jack[2, 3]+jack[3, 2]*jack[3, 3]
-    h_matrix[3, 2]=h_matrix[2, 3]
-    return h_matrix
+    return A
 
 ### Collects surrounding h matrices for given coordinates into a 4x4 matrix 
 ### Returns the h matrices separated by two (not necessarily different) unit vectors

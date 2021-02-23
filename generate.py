@@ -11,26 +11,27 @@ import datetime
 import gauge_latticeqcd
 
 ### settings  
-# W = Wilson, Wilson with rectangle improvements, W_T and WR_T = With tadpole improvement
-Nt = 10
-Nx = 10
-Ny = 10
-Nz = 10
+# HASN'T BEEN IMPLEMENTED YET W = Wilson, Wilson with rectangle improvements, W_T and WR_T = With tadpole improvement
+Nt = 12
+Nx = 12
+Ny = 12
+Nz = 12
 Ncfg = 500         # number of lattices to generate
 action = 'W'        ########## Spacetime part implemented only for Wilson action    
-betas = [5.7]       # betas to be generated, beta = 6/g^2
+betas = [5.7]       # betas to be generated, beta = 6/g^2       #### For Beta=5.7, a=0.17
 startcfg = 0       # warm start (0) or existing cfg number to start the Markov chain
 Nhits = 5          # hits between each update
 Nmatrix = 10000     # Number of matrices to generate for LQCD
 epsilon = 0.20      # how "far" away from identity the updates will be
-threads = 4         # threads used in multiprocessing
-
+threads = 8         # threads used in multiprocessing
 Nu0_step = 1        # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1         # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.             # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
+
+
 thermal = 1         # Number of configurations before starting the general relativity part
 border = 4            # Defines edges over which there will be no spacetime deformations, and the action will come from LQCD only
-magnitude_1 = 10**(16)  # Defines the magnitude of spacetime deformations
+magnitude_1 = 10**(37)  # Defines the magnitude of spacetime deformations
 
 # ### initialize multiprocessing
 if __name__ == '__main__':

@@ -518,6 +518,8 @@ class lattice():
         Lqcd_old=0.
         Lqcd_nu=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
         Lqcd_old=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (link), staple)))))) ### Finds new Lagrangian density for a point
+        ### Expanded this into two lines for no good reason, doesn't change anything, and the computational time is about the same
+        ### Wanted to see whether the expanded deltaS gives back the same deltaS as the old one. It does.
         return Lqcd_nu-Lqcd_old
     
     ### Finds the Einstein - Hilbert action
@@ -530,11 +532,12 @@ class lattice():
         Action_1=self.action_1(self.U[x, t, y, z, mu, :, :], updated_link, staple, approx_nu, approx_old)    ### Returns the first line of eq. 22 of spacetime note
         Action_2=self.action_2(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices)   ### Returns the second line of eq. 22
         Action_3, Ricci=self.action_3(SP, SPrime, t, x, y, z, approx_nu, approx_old) ### Third line of eq. 22
-        Action_4=self.action_4(SP, SPrime, t, x, y, z)
+        Action_4=self.action_4(SP, SPrime, t, x, y, z)     ### Currently returns zero for some reason. Need to investigate (might be a bug, might be a feature)
+        # if Action_4 != 0:
+        #     print('Hello')
         Action=Action_1+Action_2+Action_3+Action_4       ### Finds the sum of the actions
         # print(approx_nu)
         # print(approx_old)
-        # print(self.aa)
         # print('Action 1: ', Action_1)
         # print('Action 2: ', Action_2)
         # print('Action 3: ', Action_3)
@@ -548,6 +551,7 @@ class lattice():
 
     def action_1(self, link, updated_link, staple, approx_nu, approx_old): 
         ### Expanded the difference into two lines
+        ### Mostly imported from the the original code
         Lqcd_nu=0.
         Lqcd_old=0.
         Lqcd_nu=(self.beta * (1. - ((1. / 3.0 / self.u0) * np.real(np.trace(np.dot( (updated_link), staple))))))  ### Finds the old Lagrangian density for a point 
@@ -556,10 +560,10 @@ class lattice():
         return Action_1
     
 
-    ### I need to take the SPrime inside, and for each term take into account old coords (I think this has been resolved)
+    ### I need to take the SPrime inside, and for each term take into account old coords (This has been resolved)
     def action_2(self, link, updated_link, staple, SP, SPrime, t, x, y, z, matrices):
         ### Returns the second line of eq. 22
-        ### The fn. Plaq_approx already does everything, so this is a bit redundant
+        ### The fn. Plaq_approx already does everything, so this function is a bit redundant
         Plaquette_approximations=Relative_tools.Plaq_approx(self, t, x, y, z, matrices, SPrime)
         Action_2=Plaquette_approximations * self.beta
         return Action_2
@@ -573,7 +577,15 @@ class lattice():
         Action_3=(1-approx_nu)*self.kappa*Ricci_nu-(1-approx_old)*Ricci_old*self.kappa
         return Action_3, Ricci_nu
 
+    ### Should return the fourth line of the Action.
+    ### Given a point, finds the difference between the old Ricci value and new Ricci value in a given direction.
+    ### Somethings wrong
     def action_4(self, SP, SPrime, t, x, y, z):
+        if t == 5:
+            if x == 5:
+                if y == 5:
+                    if z == 5:
+                        print('Hammer time')
         coords=[t, x, y, z]
         Action_4=0.
         for alpha in range(4):
@@ -733,9 +745,10 @@ class lattice():
                                         ### create U' and primed spacetime point
                                         Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
                                         Ricci=0     ### By default, Ricci curvature of unperturbed spacetime is 0.
-                                        ### The next couple of lines prepares the new spacetime (original spacetime perturbed at a point)
+                                        ### The next couple of lines prepare the new spacetime (original spacetime perturbed at the given point)
                                         ### This is done only when the counter is inside the 'inner' spacetime matrix
-                                        SP_prime=copy.deepcopy(self.SP[:, :, :, :, :])
+                                        SP_prime=copy.deepcopy(self.SP[:, :, :, :, :])      ### This was needed
+                                        ### Otherwise SP_prime would simply be a different name of the same memory location
                                         SP_prime=np.array(SP_prime, dtype='double')
                                         ### Need to figure out whether I need the less than or equal sign on the second parts of the conditions.
                                         ### Shouldn't matter too much anyways if the border >= 3 I think
@@ -745,7 +758,6 @@ class lattice():
                                                     if z >= border and z < self.Nz-border:
                                                         SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon, magnitude_1)
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices, mu)
-                                                        # print(SP_prime[t, x, y, z, :])
                                                     else:
                                                         dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                                 else:
@@ -756,7 +768,8 @@ class lattice():
                                             dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         
                                         ### On the borders of the lattice, the regular action is calculated
-                                        ### The same result would come out of dEH, as all the new components would get multiplied by the zero-valued space deformations
+                                        ### The same result would come out of dEH, as all the new components of the expanded action
+                                        ### would get multiplied by the zero-valued space deformations
 
                                         ### Accepts the deformation and the updated link values only if both the change in action is accepted and the Ricci scalar curvature is positive.
                                         ### In the case when we're on the edge, still performs the test as Ricci = 0
@@ -766,8 +779,6 @@ class lattice():
                                                 self.SP[t, x, y, z, :]=copy.deepcopy(SP_prime[t, x, y, z, :])
                                                 ratio_accept += 1
                                                 rich_array[t, x, y, z] = Ricci
-                                        # else:
-                                        #     print('You are going to the right direction')
                 if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
                     plaquette.append( self.average_plaquette() )
                     if len(plaquette) == Nu0_avg:
@@ -777,6 +788,7 @@ class lattice():
                         u0_values.append( u0_prime ) #create array of u0 values
                         plaquette = []               #clear array
 
+                ### A bunch of saving happens below
                 ### save if name given
                 if (save_name):
                     idx = int(i) + initial_cfg
@@ -795,7 +807,8 @@ class lattice():
                     file_out_3=open(output_idx_3, 'wb')
                     np.save(file_out_3, rich_array)
                     sys.stdout.flush()
-            
+        
+        ############# Need to adjust the acceptance.
         ratio_accept = float(ratio_accept) / Ncfg / self.Nx / self.Ny / self.Nz / self.Nt / 4. / Nhits
         if action[-1:] == 'T':
             print("u0 progression: ", u0_values)
