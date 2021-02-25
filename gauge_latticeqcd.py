@@ -539,7 +539,7 @@ class lattice():
         # print(approx_nu)
         # print(approx_old)
         # print('Action 1: ', Action_1)
-        # print('Action 2: ', Action_2)
+        print('Action 2: ', Action_2)
         # print('Action 3: ', Action_3)
         # print('Action 4: ', Action_4)
         # print('Ricci ', Ricci)
@@ -579,13 +579,14 @@ class lattice():
 
     ### Should return the fourth line of the Action.
     ### Given a point, finds the difference between the old Ricci value and new Ricci value in a given direction.
-    ### Somethings wrong
+    ### Something's wrong
     def action_4(self, SP, SPrime, t, x, y, z):
-        if t == 5:
-            if x == 5:
-                if y == 5:
-                    if z == 5:
-                        print('Hammer time')
+        ###################### MULTIPLY WITH MPMATH
+        # if t == 5:
+        #     if x == 5:
+        #         if y == 5:
+        #             if z == 5:
+        #                 print('Hammer time')
         coords=[t, x, y, z]
         Action_4=0.
         for alpha in range(4):
@@ -633,6 +634,7 @@ class lattice():
     def markov_chain_sweep(self, epsilon, magnitude_1, Ncfg, matrices, initial_cfg=0, save_name='', thermal=10, border=2, Nhits=10, action='W', Nu0_step='', Nu0_avg=10):
         ratio_accept = 0.
         matrices_length = len(matrices)
+
         if save_name:
             output_1 = 'logs/' + save_name + '/link_' + save_name + '_'
             output_2 = 'Deformations/' + save_name + '/link_' + save_name + '_'
@@ -645,6 +647,8 @@ class lattice():
             u0_values = [self.u0]
         
         for i in range(Ncfg - 1):
+            counter_1=0
+            counter_2=0
             print('starting sweep ' + str(i+initial_cfg) + ':  ' + str(datetime.datetime.now()))
             ### loop through all space time to thermalize the lattice with QCD before starting spacetime computations
             ### This part has been tested and is in agreement with the literature
@@ -671,16 +675,18 @@ class lattice():
                                     ### loop through hits
                                     for j in range( Nhits ):
                                         ### get a random SU(3) matrix
-                                        r = np.random.randint(0, matrices_length) 
+                                        r = np.random.randint(0, matrices_length)
                                         matrix = matrices[r] 
                                         ### create U'
                                         Uprime = np.dot(matrix, self.U[t, x, y, z, mu, :, :])
                                         ### calculate staple
                                         dS = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                         ### check if U' accepted
+                                        counter_1=counter_1+1
                                         if (np.exp(-1. * dS) > np.random.uniform(0, 1)):
                                             self.U[t, x, y, z, mu, :, :] = Uprime
                                             ratio_accept += 1
+                                            counter_2=counter_2 + 1
                 ### Update u0. For better performance, skip every Nu0_step cfgs and append plaquettes to array. 
                 ### When the array reaches size Nu0_avg, average to update u0.
                 ### Wait 10 iterations from warm start.
@@ -695,16 +701,24 @@ class lattice():
 
                 ### save if name given
                 if (save_name):
+                    
                     idx = int(i) + initial_cfg
                     #print(int( idx ))
                     output_idx_1 = output_1 + str(int( idx ))
                     file_out = open(output_idx_1, 'wb')
                     np.save(file_out, self.U)  #NOTE: np.save without opening first appends .npy
                     sys.stdout.flush()
+                QCD_ratio=counter_2/counter_1
+                outfile = './The_ratio/' + save_name + '_QCD'
+                fout = open(outfile, 'a')
+                fout.write(str(i) + '   ' + str(QCD_ratio) + '\n' )
+                fout.close()
 
 
         ### Same like above but with spacetime deformations and Einstein - Hilbert action
             else:
+                counter_2=0
+                counter_1=0
             ### loop through spacetime dimensions
                 print('Lets get this ready')
                 rich_array=np.zeros((self.Nt, self.Nx, self.Ny, self.Nz))   ### Initializes an array to hold the Ricci scalar curvature assigned to every point
@@ -752,12 +766,14 @@ class lattice():
                                         SP_prime=np.array(SP_prime, dtype='double')
                                         ### Need to figure out whether I need the less than or equal sign on the second parts of the conditions.
                                         ### Shouldn't matter too much anyways if the border >= 3 I think
+                                        
                                         if t >= border and t < self.Nt-border:
                                             if x >= border and x < self.Nx-border:
                                                 if y >= border and y < self.Ny-border:
                                                     if z >= border and z < self.Nz-border:
                                                         SP_prime[t, x, y, z, :]=SP_prime[t, x, y, z, :] + Relative_tools.Delta_gen(epsilon, magnitude_1)
                                                         dEH, Ricci = self.deltaSEH(self.U[t, x, y, z, mu, :, :], Uprime, A, self.SP, SP_prime, t, x, y, z, matrices, mu)
+                                                        counter_1=counter_1+1
                                                     else:
                                                         dEH = self.deltaS(self.U[t, x, y, z, mu, :, :], Uprime, A)
                                                 else:
@@ -775,6 +791,13 @@ class lattice():
                                         ### In the case when we're on the edge, still performs the test as Ricci = 0
                                         if (np.exp(-1. * dEH) > np.random.uniform(0, 1)):
                                             if Ricci >= 0:
+                                               
+                                                if t >= border and t < self.Nt-border:
+                                                    if x >= border and x < self.Nx-border:
+                                                        if y >= border and y < self.Ny-border:
+                                                            if z >= border and z < self.Nz-border:
+                                                                counter_2=counter_2+1
+
                                                 self.U[t, x, y, z, mu, :, :] = Uprime
                                                 self.SP[t, x, y, z, :]=copy.deepcopy(SP_prime[t, x, y, z, :])
                                                 ratio_accept += 1
@@ -807,9 +830,18 @@ class lattice():
                     file_out_3=open(output_idx_3, 'wb')
                     np.save(file_out_3, rich_array)
                     sys.stdout.flush()
+                
+                SEH_ratio=counter_2/counter_1
+                outfile = './The_ratio/' + save_name + '_SEH'
+                fout = open(outfile, 'a')
+                fout.write(str(i) + ' ' + str(SEH_ratio) + '\n' )
+
+                print('Ratio of acceptence: ', SEH_ratio)
+                fout.close()
         
         ############# Need to adjust the acceptance.
         ratio_accept = float(ratio_accept) / Ncfg / self.Nx / self.Ny / self.Nz / self.Nt / 4. / Nhits
+        
         if action[-1:] == 'T':
             print("u0 progression: ", u0_values)
         return ratio_accept
