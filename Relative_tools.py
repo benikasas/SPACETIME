@@ -274,7 +274,20 @@ def Ricci(SPrime, t, x, y, z):
         R_betabeta=R_betabeta+np.trace(h_alpha[alpha])      ### Same as above
     ### 8th
     R_og_betabeta=np.trace(h_og)
-    Ricci_scalar=R_alphabeta-R_alpha+R_og-R_2_betabeta+2*R_betabeta-R_og_betabeta   ### Finds the total sum
+    Ricci_scalar=R_alphabeta-R_alpha-R_2_betabeta+2*R_betabeta-R_og_betabeta+R_og  ### Finds the total sum
+
+    # if R_og !=0:
+    #     print('R_og: ', R_og)
+    # if R_alpha !=0:
+    #     print('R_alpha: ', R_alpha)
+    # if R_alphabeta != 0:
+    #     print('R_alphabeta: ', R_alphabeta)
+    # if R_2_betabeta !=0:
+    #     print('R_2_betabeta: ', R_2_betabeta)
+    # if R_betabeta !=0:
+    #     print('R_betabeta: ', R_betabeta)
+    # if R_og_betabeta !=0:
+    #     print('R_og_betabeta: ', R_og_betabeta)
     return Ricci_scalar
 
 ### First order approximation of the plaquette. 

@@ -533,13 +533,13 @@ class lattice():
         Action_2=self.action_2(link, updated_link, staple, self.SP, SPrime, t, x, y, z, matrices)   ### Returns the second line of eq. 22
         Action_3, Ricci=self.action_3(SP, SPrime, t, x, y, z, approx_nu, approx_old) ### Third line of eq. 22
         Action_4=self.action_4(SP, SPrime, t, x, y, z)     ### Currently returns zero for some reason. Need to investigate (might be a bug, might be a feature)
-        # if Action_4 != 0:
-        #     print('Hello')
+        if Action_4 != 0:
+            print('Hello')
         Action=Action_1+Action_2+Action_3+Action_4       ### Finds the sum of the actions
         # print(approx_nu)
         # print(approx_old)
         # print('Action 1: ', Action_1)
-        print('Action 2: ', Action_2)
+        # print('Action 2: ', Action_2)
         # print('Action 3: ', Action_3)
         # print('Action 4: ', Action_4)
         # print('Ricci ', Ricci)
@@ -575,6 +575,8 @@ class lattice():
         Ricci_nu=Relative_tools.Ricci(SPrime, t, x, y, z)
         Ricci_old=Relative_tools.Ricci(SP, t, x, y, z)
         Action_3=(1-approx_nu)*self.kappa*Ricci_nu-(1-approx_old)*Ricci_old*self.kappa
+        # if Ricci_nu != Ricci_old:
+        #     print('Hello')
         return Action_3, Ricci_nu
 
     ### Should return the fourth line of the Action.
@@ -588,12 +590,21 @@ class lattice():
         #             if z == 5:
         #                 print('Hammer time')
         coords=[t, x, y, z]
+        coords_og=[t, x, y, z]
         Action_4=0.
         for alpha in range(4):
             coords[alpha]+=1
             Ricci_nu=Relative_tools.Ricci(SPrime, coords[0], coords[1], coords[2], coords[3])
+            Ricci_nu_og=Relative_tools.Ricci(SPrime, coords_og[0], coords_og[1], coords_og[2], coords_og[3])
+            # print('Ricci nu_og - Ricci_nu: ', Ricci_nu_og - Ricci_nu)
+
             Ricci_old=Relative_tools.Ricci(SP, coords[0], coords[1], coords[2], coords[3])
-            Action_4=Action_4-self.kappa*SPrime[coords[0], coords[1], coords[2], coords[3], alpha]*Ricci_nu+self.kappa*SP[coords[0], coords[1], coords[2], coords[3], alpha]*Ricci_old
+            Ricci_old_og=Relative_tools.Ricci(SP, coords_og[0], coords_og[1], coords_og[2], coords_og[3])
+            # print('Ricci old_og - Ricci_old: ', Ricci_old_og - Ricci_old)
+            # if Ricci_nu != 0:
+            #     print('Ricci_nu: ', Ricci_nu)
+            #     print('Ricci_old: ', Ricci_old)
+            Action_4=Action_4-self.kappa*SPrime[coords[0], coords[1], coords[2], coords[3], alpha]*(Ricci_nu-Ricci_nu_og)+self.kappa*SP[coords[0], coords[1], coords[2], coords[3], alpha]*(Ricci_old-Ricci_old_og)
             coords[alpha]-=1
         return Action_4
 
@@ -797,11 +808,11 @@ class lattice():
                                                         if y >= border and y < self.Ny-border:
                                                             if z >= border and z < self.Nz-border:
                                                                 counter_2=counter_2+1
-
                                                 self.U[t, x, y, z, mu, :, :] = Uprime
                                                 self.SP[t, x, y, z, :]=copy.deepcopy(SP_prime[t, x, y, z, :])
                                                 ratio_accept += 1
                                                 rich_array[t, x, y, z] = Ricci
+                                                
                 if action[-1:] == 'T' and (i % Nu0_step == 0) and i > 10:
                     plaquette.append( self.average_plaquette() )
                     if len(plaquette) == Nu0_avg:

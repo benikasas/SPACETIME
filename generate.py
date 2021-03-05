@@ -23,13 +23,13 @@ epsilon = 0.20      # how "far" away from identity the updates will be
 threads = 8         # threads used in multiprocessing
 Nu0_step = 1        # if tadpole improving, number of cfgs to skip between calculating u0.
 Nu0_avg = 1         # if tadpole improving, number of u0 values to average together before updating
-u0 = 1.             # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.
+u0 = 1.             # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.     
 
 Ncfg = 600         # number of lattices to generate
-startcfg = 0       # warm start (0) or existing cfg number to start the Markov chain
+startcfg = 300       # warm start (0) or existing cfg number to start the Markov chain
 Nhits = 25          # hits between each update
-thermal = 1         # Number of configurations before starting the general relativity part
-border = 4            # Defines edges over which there will be no spacetime deformations, and the action will come from LQCD only
+thermal = 300         # Number of configurations before starting the general relativity part
+border = 4            # Defines edges over which there  will be no spacetime deformations, and the action will come from LQCD only
 magnitude_1 = 10**(37)  # Defines the magnitude of spacetime deformations
 
 # ### initialize multiprocessing
