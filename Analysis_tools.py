@@ -119,7 +119,7 @@ def U_SP_fusion():
     dir_2 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     dir_3 = './Fusion/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
-    initial=200   ### Number of configurations to plot before plotting the spacetime part
+    initial=100   ### Number of configurations to plot before plotting the spacetime part
     bet=betas[0]
     aa=tools_v1.fn_a(bet)
     kappa=Relative_tools.kappa_calc(aa)
@@ -155,8 +155,86 @@ def U_SP_fusion():
         plt.clf()
 
 
+def avg_rich():
+    end=411
+    initial=0
+    dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
+    bet=betas[0]
+    aa=tools_v1.fn_a(bet)
+    kappa=Relative_tools.kappa_calc(aa)
+    Ricci_sum=0.
+    counter=0
+    for i in range(end - thermal + initial):
+        idx=i+thermal-initial
+        input_file_1 = dir_1 + U_infile + str(idx)
+        Ricci_mat=np.load(input_file_1)
+        for t in range(Nt):
+            for x in range(Nx):
+                for y in range(Ny):
+                    for z in range(Nz):
+                        if t >= border and t < Nt-border:
+                            if x >= border and x < Nx-border:
+                                if y >= border and y < Ny-border:
+                                    if z >= border and z < Nz-border:
+                                        Ricci_sum=Ricci_sum+Ricci_mat[t, x, y, z]
+                                        counter=counter+1
 
-value=U_SP_fusion()
+    mean_Ricci=Ricci_sum/counter
+    print('Ricci sum: ', Ricci_sum)
+    print('Average Ricci scalar curvature: ', mean_Ricci)
+
+    counter=0
+    Ricc_var=0.
+    for i in range(end - thermal + initial):
+        idx=i+thermal-initial
+        input_file_1 = dir_1 + U_infile + str(idx)
+        Ricci_mat=np.load(input_file_1)
+        for t in range(Nt):
+            for x in range(Nx):
+                for y in range(Ny):
+                    for z in range(Nz):
+                        if t >= border and t < Nt-border:
+                            if x >= border and x < Nx-border:
+                                if y >= border and y < Ny-border:
+                                    if z >= border and z < Nz-border:
+                                        Ricc_var=Ricc_var+(Ricci_mat[t, x, y, z]-mean_Ricci)**2 
+                                        counter=counter+1
+    Ricc_var=Ricc_var/(counter-1)
+    print('Ricci variance: ', Ricc_var)
+    Ricc_sdev=np.sqrt(Ricc_var)
+    print('Ricci standard deviation: ', Ricc_sdev)
+
+def rich_plot():
+    end=411
+    initial=0
+    dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
+    bet=betas[0]
+    aa=tools_v1.fn_a(bet)
+    kappa=Relative_tools.kappa_calc(aa)
+    Ricci_sum=0.
+    for i in range(end - thermal + initial):
+        idx=i+thermal-initial
+        input_file_1 = dir_1 + U_infile + str(idx)
+        Ricci_mat=np.load(input_file_1)
+        for t in range(Nt):
+            for x in range(Nx):
+                for y in range(Ny):
+                    for z in range(Nz):
+                        if t >= border and t < Nt-border:
+                            if x >= border and x < Nx-border:
+                                if y >= border and y < Ny-border:
+                                    if z >= border and z < Nz-border:
+                                        Ricci_sum=Ricci_sum+Ricci_mat[t, x, y, z]
+
+    print(Ricci_sum)
+
+
+
+    
+
+value=avg_rich()
 
 
 def lagrangian_test():

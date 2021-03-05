@@ -8,8 +8,8 @@ from generate import Nx, Ny, Nz, Nt, action, u0, betas, border, magnitude_1
 
 
 ### Script to calculate the evolution of the action as a function of Monte Carlo time
-Nstart = 0
-Nend = 10
+Nstart = 1
+Nend = 500
 
 beta=betas[0]
 #@numba.njit
