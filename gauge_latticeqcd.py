@@ -331,7 +331,8 @@ def generate(beta, u0, action, Nt, Nx, Ny, Nz, startcfg, Ncfg, thermal, border, 
     else:
         #print(action)
         U = lc.fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, startcfg, border, magnitude_1, "./logs/")
-        U = lattice(Nt, Nx, Ny, Nz, beta, u0, U)
+        SP = lc.fn_load_spacetime(action, Nt, Nx, Ny, Nz, beta, startcfg, border, magnitude_1, "./Deformations/")
+        U = lattice(Nt, Nx, Ny, Nz, beta, u0, U, SP) 
     ### I could implement something like above for spacetime deformations, but right now the code should work, and if startcfg =! 0, it recalculates the last iteration
     
     print('Continuing from cfg: ', startcfg)
@@ -365,8 +366,8 @@ class lattice():
         self.kappa=Relative_tools.kappa_calc(aa)
         self.aa=aa
         ### Create a separate matrix for spacetime deformations, which is the zero matrix initially (there are no deformations).
-        if None == SP:
-            SP=np.zeros((Nt, Nx, Ny, Nz, 4), dtype='double')
+        # if None == SP:
+        #     SP=np.zeros((Nt, Nx, Ny, Nz, 4), dtype='double')
         self.SP = np.array(SP, dtype='double')
 
 

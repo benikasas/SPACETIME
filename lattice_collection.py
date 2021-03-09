@@ -39,6 +39,19 @@ def fn_load_configuration(action, Nt, Nx, Ny, Nz, beta, cfg, border, magnitude_1
     sys.stdout.flush()
     return U
 
+def fn_load_spacetime(action, Nt, Nx, Ny, Nz, beta, cfg, border, magnitude_1, path = ""):
+    name = action +'_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100))   + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
+    tmp = np.load(path + name + '/link_' + name + '_' + str(cfg))
+    SP = np.zeros((Nt, Nx, Ny, Nz, 4), dtype='double')
+    for t in range(Nt):
+        for x in range(Nx):
+            for y in range(Ny):
+                for z in range(Nz):
+                    for mu in range(4):
+                        SP[t][x][y][z][mu] = tmp[t][x][y][z][mu]
+    sys.stdout.flush()
+    return SP
+
 ### HELPER FUNCTION - ONLY TO ALLOW MULTIPROCESSING. 
 ### collects calls function and sends arguments properly
 def helper(args):

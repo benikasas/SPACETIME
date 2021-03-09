@@ -25,8 +25,8 @@ Nu0_step = 1        # if tadpole improving, number of cfgs to skip between calcu
 Nu0_avg = 1         # if tadpole improving, number of u0 values to average together before updating
 u0 = 1.             # u0 = <W11>^(1/4); if tadpole improving and continuing from existing lattices, set here.  Else ignore.     
 
-Ncfg = 600         # number of lattices to generate
-startcfg = 300       # warm start (0) or existing cfg number to start the Markov chain
+Ncfg = 700         # number of lattices to generate
+startcfg = 299       # warm start (0) or existing cfg number to start the Markov chain
 Nhits = 25          # hits between each update
 thermal = 300         # Number of configurations before starting the general relativity part
 border = 4            # Defines edges over which there  will be no spacetime deformations, and the action will come from LQCD only

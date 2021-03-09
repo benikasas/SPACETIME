@@ -12,13 +12,14 @@ import Relative_tools
 
 
 def avrg_rich():
-    end=411
-    initial=0
+    end=440
+    initial=-50
     dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
     bet=betas[0]
     aa=tools_v1.fn_a(bet)
     kappa=Relative_tools.kappa_calc(aa)
+    print(kappa)
     Ricci_sum=0.
     counter=0
     for i in range(end - thermal + initial):
@@ -37,7 +38,7 @@ def avrg_rich():
                                         counter=counter+1
     mean_Ricci=Ricci_sum/counter
     print('Mean Ricci scalar curvature: ', mean_Ricci)
-    return mean_Ricci
+    return mean_Ricci, counter
 
 def cal_S(U):
     beta=betas[0]
@@ -62,8 +63,8 @@ def cal_S(U):
 
 
 def avrg_ac():
-    Nstart = 300
-    Nend = 411
+    Nstart = 350
+    Nend = 440
     beta=betas[0]
     dir = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile = dir + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
@@ -76,13 +77,13 @@ def avrg_ac():
         counter=counter+counters
     mean_action=S/counter
     print('Mean QCD action: ', mean_action)
-    return mean_action
+    return mean_action, counter
 
 def sigma_ac():
-    mean_action=avrg_ac()
+    mean_action, counter=avrg_ac()
     
-    Nstart = 300
-    Nend = 411
+    Nstart = 350
+    Nend = 440
     beta=betas[0]
 
     dir_ac = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
@@ -104,9 +105,9 @@ def sigma_ac():
     return the_sum
 
 def sigma_r():
-    mean_Ricci=avrg_rich()
-    Nstart = 300
-    Nend = 411
+    mean_Ricci, counter=avrg_rich()
+    Nstart = 350
+    Nend = 440
     beta=betas[0]
     dir_ric = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile_ric = dir_ric + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
@@ -129,12 +130,13 @@ def sigma_r():
 
 
 def corr_coff():
-    mean_action=avrg_ac()
-    mean_Ricci=avrg_rich()
+    mean_action, counter_1=avrg_ac()
+    mean_Ricci, counter_2=avrg_rich()
     sigmasigma=np.sqrt(sigma_ac()*sigma_r())
-    Nstart = 300
-    Nend = 411
+    Nstart = 350
+    Nend = 440
     beta=betas[0]
+    counter=0
 
     dir_ac = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile_ac = dir_ac + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
@@ -155,8 +157,13 @@ def corr_coff():
                                         S = gauge_latticeqcd.fn_eval_point_S(U, t, x, y, z, beta, u0=1.)
                                         Ricci = Ricci_mat[t, x, y, z]
                                         the_sum=the_sum+(S-mean_action)*(Ricci-mean_Ricci)
+                                        counter=counter+1
     the_coff=the_sum/sigmasigma
-    print('The correlation coefficient: ', the_coff)
+    stdev=(1-the_coff**2)/counter
+    print('The correlation coefficient: ', the_coff, ' with the standard error: ', stdev)
+    print(counter)
     return the_coff
+
+
 
 value=corr_coff()

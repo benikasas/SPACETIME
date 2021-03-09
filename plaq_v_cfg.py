@@ -12,7 +12,7 @@ from generate import betas, Nt, Nx, Ny, Nz, action, epsilon, u0, border, magnitu
 
 ## Settings
 Nstart = 1
-Nend = 500
+Nend = 440
 beta=betas[0]
 
 if __name__ == "__main__":
