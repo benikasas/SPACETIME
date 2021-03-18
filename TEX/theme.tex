@@ -1,0 +1,164 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{textpos}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+\mode<presentation>
+\definecolor{finblue}{RGB}{1,104,181}
+\defbeamertemplate*{headline}{MagdeburgFIN}
+{
+\vspace{3pt} %
+\begin{minipage}{0.25\paperwidth} %
+	\vspace{-5pt}\hspace{4pt} %
+	\includegraphics[height=1.2cm]{logos/Uni-logo-Glasgow_730_290_80.jpg}\hspace*{1pt} %
+\end{minipage} %
+\begin{minipage}[t]{0.75\paperwidth} %
+  \hfill \vspace{5pt} {\Large \textbf{\insertframetitle}} \hspace{6pt} %
+\end{minipage} %
+\vspace{2pt} %
+
+ \begin{beamercolorbox}[wd=\paperwidth]{underline}
+   \hrulefill
+ \end{beamercolorbox}
+}
+\defbeamertemplate*{footline}{MagdeburgFIN}
+{
+  \hbox{%
+  \begin{beamercolorbox}[wd=.3\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor
+  \end{beamercolorbox}%
+  
+  \begin{beamercolorbox}[wd=.6\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  
+  \begin{beamercolorbox}[wd=.1\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \insertframenumber{}\hspace*{2em} 
+  \end{beamercolorbox}}%
+  
+  \vskip0pt%
+}
+\pgfdeclareimage[width=14pt,height=12pt]{beamericonbook}{beamericonbook}
+\pgfdeclareimage[width=14pt,height=12pt]{beamericonbookshaded}{beamericonbook.20}
+\pgfaliasimage{beamericonbook.!20opaque}{beamericonbookshaded}
+\pgfaliasimage{beamericonbook.!15opaque}{beamericonbookshaded}
+\pgfaliasimage{beamericonbook.!10opaque}{beamericonbookshaded}
+\pgfaliasimage{beamericonbook.!5opaque}{beamericonbookshaded}
+\pgfaliasimage{beamericonbook.!2opaque}{beamericonbookshaded}
+\pgfdeclareimage[width=11pt,height=14pt]{beamericonarticle}{beamericonarticle}
+\pgfdeclareimage[width=11pt,height=14pt]{beamericonarticleshaded}{beamericonarticle.20}
+\pgfaliasimage{beamericonarticle.!20opaque}{beamericonarticleshaded}
+\pgfaliasimage{beamericonarticle.!15opaque}{beamericonarticleshaded}
+\pgfaliasimage{beamericonarticle.!10opaque}{beamericonarticleshaded}
+\pgfaliasimage{beamericonarticle.!5opaque}{beamericonarticleshaded}
+\pgfaliasimage{beamericonarticle.!2opaque}{beamericonarticleshaded}
+\pgfdeclareimage[height=1.5cm]{UoG}{logos/Uni-logo-Glasgow_730_290_80.jpg}
+
+\definecolor{stanzi@other}{RGB}{1,104,181}
+\defbeamertemplate*{title page}{MagdeburgFIN}[1][]
+{
+   \vfill
+   \vskip2.0em
+	\begin{pgfpicture}[sep=0cm,#1]
+		\hspace{20pt}
+		\pgftext[at=\pgfpoint{0pt}{100pt},left,base]{\pgfuseimage{UoG}}
+	\end{pgfpicture}
+   \vskip1.8em
+   
+   \begin{beamercolorbox}[leftskip=20pt,wd=0.9\textwidth,sep=0pt,#1]{title}
+      \usebeamerfont{title}\inserttitle\par%
+      \ifx\insertsubtitle\@empty%
+      \else%
+        \vskip0.25em%
+        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+      \fi%
+    \end{beamercolorbox}%
+	\vskip1.6em\par
+    \begin{beamercolorbox}[leftskip=20pt,sep=2pt,#1]{author}
+      \usebeamerfont{author}\insertauthor
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[leftskip=20pt,sep=2pt,#1]{institute}
+      \usebeamerfont{institute}\insertinstitute
+    \end{beamercolorbox}
+	\vskip0.5em
+    \begin{beamercolorbox}[leftskip=20pt,sep=2pt,#1]{date}
+      \usebeamerfont{date}\insertdate
+    \end{beamercolorbox}
+	\vskip0.4em
+    \begin{beamercolorbox}[leftskip=20pt,sep=2em,wd=\paperwidth, ht=6.4255em]{postit}
+      \vbox{\vskip0.6pt}
+    \end{beamercolorbox} 
+}
+\setbeamersize{text margin left=10pt,text margin right=10pt}
+\setbeamertemplate{frametitle}{}
+\defbeamertemplate*{section in toc}{MagdeburgFIN}
+{\inserttocsection\par}
+\defbeamertemplate*{subsection in toc}{MagdeburgFIN}
+{\leavevmode\leftskip=1.5em\inserttocsubsection\par}
+\defbeamertemplate*{subsubsection in toc}{MagdeburgFIN}
+{\leavevmode\normalsize\usebeamerfont{subsection in toc}\leftskip=3em%
+  \usebeamerfont{subsubsection in toc}\inserttocsubsubsection\par}
+\defbeamertemplate*{section in toc shaded}{MagdeburgFIN}[1][20]
+{\begin{colormixin}{#1!parent.bg}\usebeamertemplate{section in toc}\end{colormixin}\unskip}
+\defbeamertemplate*{subsection in toc shaded}{MagdeburgFIN}[1][20]
+{\begin{colormixin}{#1!parent.bg}\usebeamertemplate{subsection in toc}\end{colormixin}\unskip}
+\defbeamertemplate*{subsubsection in toc shaded}{MagdeburgFIN}[1][20]
+{\begin{colormixin}{#1!parent.bg}\usebeamertemplate{subsubsection in toc}\end{colormixin}\unskip}
+\defbeamertemplate*{itemize item}{MagdeburgFIN}{\scriptsize\raise1.25pt\hbox{\donotcoloroutermaths$\bullet$}}
+\defbeamertemplate*{itemize subitem}{MagdeburgFIN}{\tiny\raise1.5pt\hbox{\donotcoloroutermaths$\bullet$}}
+\defbeamertemplate*{itemize subsubitem}{MagdeburgFIN}{\tiny\raise1.5pt\hbox{\donotcoloroutermaths$\bullet$}}
+\defbeamertemplate*{enumerate item}{MagdeburgFIN}{\insertenumlabel.}
+\defbeamertemplate*{enumerate subitem}{MagdeburgFIN}{\insertenumlabel.\insertsubenumlabel}
+\definecolor{finblue}{RGB}{1,104,181}
+\setbeamercolor{normal text}{fg=black,bg=white!30}
+\setbeamercolor{structure}{fg=black}
+\setbeamercolor{postit}{fg=white,bg=finblue}
+\setbeamercolor{alerted text}{fg=red!85!black}
+\setbeamercolor{underline}{fg=finblue,bg=finblue}
+\setbeamercolor{item projected}{use=item,fg=black,bg=item.fg!75}
+\setbeamercolor*{palette primary}{fg=white,bg=finblue}
+\setbeamercolor*{palette secondary}{parent=palette primary,use=palette primary,bg=palette primary.bg!95!black}
+\setbeamercolor*{palette tertiary}{parent=palette primary,use=palette primary,bg=palette primary.bg!90!black}
+\setbeamercolor*{palette quaternary}{parent=palette primary,use=palette primary,bg=palette primary.bg!85!black}
+\setbeamercolor*{sidebar}{parent=palette primary}
+\setbeamercolor*{palette sidebar primary}{fg=white}
+\setbeamercolor*{palette sidebar secondary}{fg=black}
+\setbeamercolor*{palette sidebar tertiary}{fg=white}
+\setbeamercolor*{palette sidebar quaternary}{fg=black}
+\setbeamercolor{framesubtitle}{fg=black}
+\setbeamercolor*{subtitle}{fg=black}
+\setbeamercolor*{block title}{parent=structure}
+\setbeamercolor*{block title alerted}{parent=alerted text}
+\setbeamercolor*{block title example}{parent=example text}
+\setbeamercolor*{block body}{}
+\setbeamercolor*{block body alerted}{}
+\setbeamercolor*{block body example}{}
+\setbeamercolor*{titlelike}{parent=structure}
+\setbeamerfont{block title}{size={}}
+\usefonttheme{structurebold}
+\mode
+<all>
+
+\definecolor{c1}{rgb}{0.1,0.1,1}
+\setlength{\fboxsep}{0pt}
+\setbeamersize{text margin left=0pt,text margin right=0pt} 
+\setbeamercolor{block title}
+	{use=structure,fg=white,bg=structure.fg!45!c1}
+\setbeamercolor{block title alerted}
+	{use=alerted text,fg=white,bg=alerted text.fg!75!black}
+\setbeamercolor{block title example}
+	{use=example text,fg=white,bg=example text.fg!75!black}
+\setbeamercolor{block body}
+	{parent=normal text,use=block title,bg=block title.bg!10!bg}
+\setbeamercolor{block body alerted}
+	{parent=normal text,use=block title alerted,bg=block title alerted.bg!10!bg}
+\setbeamercolor{block body example}
+	{parent=normal text,use=block title example,bg=block title example.bg!10!bg}
+\setbeamertemplate{blocks}[rounded][shadow=true] 
+\usenavigationsymbolstemplate{}
+\def\insertframetitle{}

@@ -9,6 +9,7 @@ import gauge_latticeqcd
 import matplotlib as cm
 import tools_v1
 import Relative_tools
+from pygal.style import Style
 
 ### NEEDS MORE COMMENTS, IT'S VERY MESSY BUT IT WORKS
 
@@ -17,41 +18,64 @@ beta=betas[0]
 
 ## Function to graph the plaquette values against configuration number
 def grapher_plaq():
-    U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
+    U_infile = './dats/plaquette_from_1_to_440_v_epsilon_0.2_v_cfg_570_11x11x11x11_W_border_10_magnitude_1000000000000000000000000000000000000.dat'
     U_infile_2 = './dats/plaquette_from_1_to_440_v_epsilon_0.2_v_cfg_570_11x11x11x11_W_border_4_magnitude_10000000000000000000000000000000000000.dat'
     data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
     data_2=np.loadtxt(U_infile_2,dtype=float,delimiter=' ',skiprows=0)
     rendername = './images/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
-    lineplot=pygal.XY(stroke=False, show_legend=True, background='grey', range=(0.5, 0.72), legend_at_bottom=True)
+    c_style=Style(
+        background='white',
+        plot_background='white',
+        foreground='black',
+        label_font_size=14,
+        major_label_font_size=14,
+        title_font_size=25,
+        legend_font_size=20,
+        show_y_guides=True
+    )
+    lineplot=pygal.XY(stroke=False, show_legend=True, background='white', range=(0.5, 0.72), legend_at_bottom=True, style=c_style)
     lineplot.add('l-QCD', data[:])
-    lineplot.add('l-QCD with spacetime deformations', data_2[:], stroke=False)
+    lineplot.add('l-QCD with deformations', data_2[:], stroke=False)
     # lineplot.xrange=(0, 800)
     lineplot.x_title='Configuration number'
     lineplot.y_title='Average plaquette'
+
     lineplot.render_to_file(rendername + '.svg')
+
+
+
 
 def grapher_ac():
     U_infile_2 = './dats/S_v_cfg_570_11x11x11x11_W_border_4_magnitude_10000000000000000000000000000000000000.dat'
     U_infile = './dats/S_v_cfg_570_11x11x11x11_W_border_10_magnitude_1000000000000000000000000000000000000.dat'
     data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
     data_2=np.loadtxt(U_infile_2,dtype=float,delimiter=' ',skiprows=0)
+    c_style=Style(
+        background='white',
+        plot_background='white',
+        foreground='black',
+        label_font_size=14,
+        major_label_font_size=14,
+        title_font_size=25,
+        legend_font_size=20,
+        show_y_guides=True
+    )
 
-    lineplot=pygal.XY(stroke=False, show_legend=True, background='grey', legend_at_bottom=True)
+    lineplot=pygal.XY(stroke=False, show_legend=True, background='white', legend_at_bottom=True)
     rendername = './images/S_v_cfg_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
-    lineplot=pygal.XY(stroke=False, show_legend=True, background='grey', legend_at_bottom=True)
+    lineplot=pygal.XY(stroke=False, show_legend=True, background='white', legend_at_bottom=True, style=c_style)
     # for i in range(len(data)):
     data[:, 1] = data[:, 1] - 224944
     data_2[:, 1]= data_2[:, 1] - 224944
     lineplot.add('l-QCD', data[:])
-    lineplot.add('l-QCD with spacetime deformations', data_2[:])
+    lineplot.add('l-QCD with deformations', data_2[:])
     # lineplot.range=(-80000, 10000)
     
     lineplot.x_title='Configuration number'
     lineplot.y_title='Action sum'
     lineplot.render_to_file(rendername + '.svg')
 
-
-val=grapher_ac()
+a=grapher_ac()
 
 def grapher_rich():
     end=440
@@ -64,6 +88,16 @@ def grapher_rich():
     Ricci_sum=0.
     counter=0
     rich_array=np.zeros((140, 2))
+    c_style=Style(
+        background='white',
+        plot_background='white',
+        foreground='black',
+        label_font_size=14,
+        major_label_font_size=14,
+        title_font_size=25,
+        legend_font_size=20,
+        show_y_guides=True
+    )
     # print(rich_array)
     for i in range(end - thermal + initial):
         idx=i+thermal-initial
@@ -84,9 +118,9 @@ def grapher_rich():
         rich_array[i, 0]=i+300
     # print(rich_array)    
     rendername = './images/Mean_Rich_' + str(initial) + '_to_' + str(end) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
-    lineplot=pygal.XY(stroke=False, show_legend=False, background='grey')#, range=(10**(-37), 3*10**(-36)))
+    lineplot=pygal.XY(stroke=False, show_legend=False, style=c_style)#, range=(10**(-37), 3*10**(-36)))
     lineplot.add('line', rich_array[:, :])
-    lineplot.title='Mean Ricci scalar curvature against configuration number' 
+    # lineplot.title='Mean Ricci scalar curvature against configuration number' 
     lineplot.x_title='Configuration number'   
     lineplot.y_title='Mean Ricci scalar curvature'
     lineplot.render_to_file(rendername + '.svg')
@@ -96,9 +130,10 @@ def grapher_rich():
 ## Function to run various analyses on the file
 ## Very outdated, needs a heavy upgrade
 def statistician():
-    U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
+    # U_infile = './dats/plaquette_from_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
     # U_infile='./dats/S_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '.dat'
-    plaq=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=100,usecols=(1,)) ## Loads plaquette data file
+    U_infile='./dats/plaq-old-edit.dat'
+    plaq=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=50,usecols=(1,)) ## Loads plaquette data file
     totsum=np.sum(plaq) ## Finds the sum of the plaquette
     mean_val=totsum/len(plaq) ## Finds average of the plaquette
     varsum=0
@@ -111,6 +146,7 @@ def statistician():
     rel_error=mean_sdev/mean_val ## Relative error
     
     print('Acceptable value: ', mean_val, ' with standard deviation :', mean_sdev)
+
 
 ### Used to reduce 4D to 3D
 ### This is done by fixing two coordinates and plotting the Ricci curvature against the other two coordinates
@@ -245,8 +281,8 @@ def U_SP_fusion():
 
 
 def avg_rich():
-    end=411
-    initial=0
+    end=440
+    initial=-50
     dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
     bet=betas[0]
@@ -293,6 +329,8 @@ def avg_rich():
     print('Ricci variance: ', Ricc_var)
     Ricc_sdev=np.sqrt(Ricc_var)
     print('Ricci standard deviation: ', Ricc_sdev)
+
+
 
 def rich_plot():
     end=411

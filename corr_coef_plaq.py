@@ -19,6 +19,7 @@ def avrg_rich():
     bet=betas[0]
     aa=tools_v1.fn_a(bet)
     kappa=Relative_tools.kappa_calc(aa)
+    print(kappa)
     Ricci_sum=0.
     counter=0
     for i in range(end - thermal + initial):
@@ -39,11 +40,9 @@ def avrg_rich():
     print('Mean Ricci scalar curvature: ', mean_Ricci)
     return mean_Ricci, counter
 
-def cal_S(U):
-    beta=betas[0]
-    Nt, Nx, Ny, Nz = len(U), len(U[0]), len(U[0, 0]), len(U[0, 0, 0])
-    S = 0.
-    counter=0
+def fn_average_plaquette(U):
+    Nt, Nx, Ny, Nz = map(len, [U, U[0], U[0][0], U[0][0][0]])
+    res = np.zeros(np.shape(U[0,0,0,0,0,:,:]), dtype='complex128')
     for t in range(Nt):
         for x in range(Nx):
             for y in range(Ny):
@@ -52,16 +51,12 @@ def cal_S(U):
                         if x >= border and x < Nx-border:
                             if y >= border and y < Ny-border:
                                 if z >= border and z < Nz-border:
-                                    S += gauge_latticeqcd.fn_eval_point_S(U, t, x, y, z, beta, u0=1.)
-                                    counter=counter+1
-                #end z
-            #end y
-        #end x
-    #end t
-    return S, counter
+                                    for mu in range(1, 4):
+                                        for nu in range(mu):
+                                            res = np.add(res, gauge_latticeqcd.fn_plaquette(U, t, x, y, z, mu, nu))
+    return np.trace(res).real / 3. / 3 / 3 / 3 / 3 / 6.             #################If I ever plan on expanding the spacetime, edit this here. Easy fix for now will do
 
-
-def avrg_ac():
+def avrg_plaq():
     Nstart = 350
     Nend = 440
     beta=betas[0]
@@ -71,15 +66,15 @@ def avrg_ac():
     counter=0
     for Ncfg in range(Nstart, Nend):
         U = np.load(U_infile + str(Ncfg))
-        SS, counters=cal_S(U)
-        S = S + SS
-        counter=counter+counters
-    mean_action=S/counter
-    print('Mean QCD action: ', mean_action)
-    return mean_action, counter
+        S = S + fn_average_plaquette(U)
+        counter=counter+1
 
-def sigma_ac():
-    mean_action, counter=avrg_ac()
+    mean_plaq=S/counter
+    print('Mean QCD action: ', mean_plaq)
+    return mean_plaq, counter
+
+def sigma_plaq():
+    mean_plaq, counter=avrg_plaq()
     
     Nstart = 350
     Nend = 440
@@ -87,7 +82,8 @@ def sigma_ac():
 
     dir_ac = './logs/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile_ac = dir_ac + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(beta * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
-    
+    U = np.load(U_infile_ac + str(thermal))
+    res = np.zeros(np.shape(U[0,0,0,0,0,:,:]), dtype='complex128')
     the_sum=0.
     for Ncfg in range(Nstart, Nend):
         U = np.load(U_infile_ac + str(Ncfg))
@@ -99,8 +95,11 @@ def sigma_ac():
                             if x >= border and x < Nx-border:
                                 if y >= border and y < Ny-border:
                                     if z >= border and z < Nz-border:
-                                        S = gauge_latticeqcd.fn_eval_point_S(U, t, x, y, z, beta, u0=1.)
-                                        the_sum=the_sum+(S-mean_action)**2
+                                        for mu in range(1, 4):
+                                            for nu in range(mu):
+                                                res = np.add(res, gauge_latticeqcd.fn_plaquette(U, t, x, y, z, mu, nu))
+                                        S=np.trace(res).real / 3. / 6.
+                                        the_sum=the_sum+(S-mean_plaq)**2
     return the_sum
 
 def sigma_r():
@@ -129,9 +128,9 @@ def sigma_r():
 
 
 def corr_coff():
-    mean_action, counter_1=avrg_ac()
+    mean_plaq, counter_1=avrg_plaq()
     mean_Ricci, counter_2=avrg_rich()
-    sigmasigma=np.sqrt(sigma_ac()*sigma_r())
+    sigmasigma=np.sqrt(sigma_plaq()*sigma_r())
     Nstart = 350
     Nend = 440
     beta=betas[0]
@@ -142,6 +141,8 @@ def corr_coff():
     dir_ric = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     U_infile_ric = dir_ric + 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
     the_sum=0.
+    U = np.load(U_infile_ac + str(thermal))
+    res = np.zeros(np.shape(U[0,0,0,0,0,:,:]), dtype='complex128')
     for Ncfg in range(Nstart, Nend):
         U = np.load(U_infile_ac + str(Ncfg))
         Ricci_mat=np.load(U_infile_ric + str(Ncfg))
@@ -153,9 +154,12 @@ def corr_coff():
                             if x >= border and x < Nx-border:
                                 if y >= border and y < Ny-border:
                                     if z >= border and z < Nz-border:
-                                        S = gauge_latticeqcd.fn_eval_point_S(U, t, x, y, z, beta, u0=1.)
+                                        for mu in range(1, 4):
+                                            for nu in range(mu):
+                                                res = np.add(res, gauge_latticeqcd.fn_plaquette(U, t, x, y, z, mu, nu))
+                                        S=np.trace(res).real / 3. / 6
                                         Ricci = Ricci_mat[t, x, y, z]
-                                        the_sum=the_sum+(S-mean_action)*(Ricci-mean_Ricci)
+                                        the_sum=the_sum+(S-mean_plaq)*(Ricci-mean_Ricci)
                                         counter=counter+1
     the_coff=the_sum/sigmasigma
     stdev=(1-the_coff**2)/counter

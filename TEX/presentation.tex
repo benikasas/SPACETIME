@@ -1,0 +1,136 @@
+\input{theme}
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{rotating}
+\usepackage{wasysym}
+
+\graphicspath{{images/}}
+
+\title[l-QCD vs. spacetime]
+    {Putting l-QCD on a dynamic spacetime}
+\author[Justinas Benikasas]{
+    \texorpdfstring{\underline{Justinas Benikasas}$^*$}{Justinas Benikasas},
+    \texorpdfstring{Dr. Chris Bouchard}{}}
+\institute{University of Glasgow\\}
+\date{Mar 12, 2021 | Glasgow, Scotland\vspace{6pt}}
+
+\newcommand{\yes}{\CIRCLE}
+\newcommand{\no}{\Circle}
+\newcommand{\partially}{\LEFTcircle}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage{}
+\end{frame}
+
+\begin{frame}[t]{Table of contents}
+\only<1-3>{
+    \begin{textblock*}{\paperwidth} (0.05\paperwidth,25pt)
+        \begin{enumerate}
+            \item<1-> \textbf{Introducing lattice quantum chromodynamics (l-QCD)}
+                \begin{itemize}
+                    \item 
+                \end{itemize}
+            \item<2-> \textbf{Implementing semi-classical GR}
+                \begin{itemize}
+                    \item Discrete spacetime continuum
+                \end{itemize}
+        \end{enumerate}
+        \only<3>{
+        \hspace*{6cm}
+        \includegraphics[width=250pt]{Lattice - Einstein Hilbert.png}
+        }
+    \end{textblock*}
+}
+% \only<4-5>{
+%     \begin{textblock*}{\paperwidth} (0.05\paperwidth,40pt)
+%         \textbf{Our contribution:}
+%         \begin{enumerate}
+%             \itemsep5pt
+%             \item Formal approach to\\
+%             \textbf{collaborative real-time feature modeling}\\
+%             with focus on
+%             \begin{itemize}
+%                 \item Consistency maintenance
+%                 \item Conflict detection \color{gray}{(\& resolution)}
+%             \end{itemize}
+%             \only<5>{\item Open-source research prototype}
+%         \end{enumerate}
+%     \end{textblock*}
+% }
+% \begin{textblock*}{0.37\paperwidth} (0.58\paperwidth,30pt)	
+%     \includegraphics<5>[width=\linewidth]{tool}
+% \end{textblock*}
+\end{frame}
+
+% \begin{frame}[t]{l-QCD}
+% \begin{textblock*}{0.54\paperwidth} (0.025\paperwidth,5.5pt)
+%     \includegraphics<1>[width=\linewidth]{conflict}
+%     \centering
+%     \textbf{Formal description}
+% \end{textblock*}
+% \begin{textblock*}{0.38\paperwidth} (0.588\paperwidth,10pt)
+%     \includegraphics<1>[width=\linewidth]{tool}
+%     \centering
+%     \textbf{Open-source prototype}
+% \end{textblock*}
+% \end{frame}
+
+\begin{frame}[t]{Introducing L-QCD}
+\begin{textblock*}{\paperwidth} (0.05\paperwidth,25pt)
+\begin{itemize}
+    \item[] <1-2>\textbf{What is a lattice and why do we need it?}
+    \item[] <2>\textbf{Performing calculations on the lattice}
+\end{itemize}
+\end{textblock*}
+\end{frame}
+
+\begin{frame}[t]{Introducing L-QCD}
+\begin{textblock*}{\paperwidth} (0.05\paperwidth,25pt)
+
+\begin{itemize}
+    \item[] <1-4>\textbf{What is a lattice and why do we need it?}
+        \begin{itemize}
+            \item <2-4> Working with minimal energies
+            \item <3-4> Computationally easier to implement
+        \end{itemize}
+\end{itemize}
+
+\vspace{-1.8cm}{
+\hspace{8.5cm}
+% \includegraphics<4>[width=175pt]{Lattice.png}
+}
+\end{textblock*}
+\end{frame}
+
+\begin{frame}{Introducing L-QCD}
+    \item[] <1-4> \textbf{Performing calculations on the lattice}
+\end{frame}
+
+\begin{frame}[t]{Concurrency Control}
+\begin{textblock*}{\paperwidth} (0.125\paperwidth,20pt)
+    % \begin{tabular}{rllllllll}
+    %     \toprule
+    %     \vspace{1.5cm}\\
+    %     & \begin{rotate}{50} \textbf{Turn-Taking} \end{rotate} \hspace{0.5cm}
+    %     & \begin{rotate}{50} \textbf{Locking} \end{rotate} \hspace{0.5cm}
+    %     & \begin{rotate}{50} \textbf{{CRDTs}} \end{rotate} \hspace{0.5cm}
+    %     & \begin{rotate}{50} \textbf{Serialization} \end{rotate} \hspace{0.5cm}
+    %     & \begin{rotate}{50} \textbf{{OT}} \end{rotate} \hspace{0.5cm}
+    %     & \begin{rotate}{50} \textbf{{MVSD}} \end{rotate} \hspace{0.5cm}
+    %     & \begin{rotate}{50} \textbf{{MVMD}} \end{rotate} \hspace{0.5cm}
+    %     & \\
+    %     \midrule
+    %     \textbf{Concurrency} & \no & \partially & \yes & \yes & \yes & \yes & \yes \\
+    %     \textbf{Optimism} & \partially & \no & \yes & \yes & \yes & \yes & \yes \\
+    %     \textbf{Intention Preservation} & \yes & \no & \no & \no & \no & \partially & \yes \\
+    %     \textbf{Flexibility} & \yes & \no & \no & \no & \no & \no & \partially \\
+    %     \textbf{Correctness} & \yes & \partially & \partially & \yes & \no & \no & \partially \\
+    %     \bottomrule
+    % \end{tabular}
+\end{textblock*}
+\end{frame}
+
+\end{document}
