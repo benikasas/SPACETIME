@@ -27,8 +27,8 @@ def grapher_plaq():
         background='white',
         plot_background='white',
         foreground='black',
-        label_font_size=14,
-        major_label_font_size=14,
+        label_font_size=17,
+        major_label_font_size=17,
         title_font_size=25,
         legend_font_size=20,
         show_y_guides=True
@@ -46,36 +46,43 @@ def grapher_plaq():
 
 
 def grapher_ac():
-    U_infile_2 = './dats/S_v_cfg_570_11x11x11x11_W_border_4_magnitude_10000000000000000000000000000000000000.dat'
     U_infile = './dats/S_v_cfg_570_11x11x11x11_W_border_10_magnitude_1000000000000000000000000000000000000.dat'
+    U_infile_2 = './dats/S_v_cfg_570_11x11x11x11_W_border_4_magnitude_10000000000000000000000000000000000000.dat'
+    U_infile_3 = './dats/plaquette_from_1_to_440_v_epsilon_0.2_v_cfg_570_11x11x11x11_W_border_10_magnitude_1000000000000000000000000000000000000.dat'
+    U_infile_4 = './dats/plaquette_from_1_to_440_v_epsilon_0.2_v_cfg_570_11x11x11x11_W_border_4_magnitude_10000000000000000000000000000000000000.dat'
     data=np.loadtxt(U_infile,dtype=float,delimiter=' ',skiprows=0)
     data_2=np.loadtxt(U_infile_2,dtype=float,delimiter=' ',skiprows=0)
+    data_3=np.loadtxt(U_infile_3,dtype=float,delimiter=' ',skiprows=0)
+    data_4=np.loadtxt(U_infile_4,dtype=float,delimiter=' ',skiprows=0)
     c_style=Style(
         background='white',
         plot_background='white',
         foreground='black',
-        label_font_size=14,
-        major_label_font_size=14,
+        label_font_size=17,
+        major_label_font_size=17,
         title_font_size=25,
         legend_font_size=20,
         show_y_guides=True
     )
 
-    lineplot=pygal.XY(stroke=False, show_legend=True, background='white', legend_at_bottom=True)
-    rendername = './images/S_v_cfg_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
+    # lineplot=pygal.XY(stroke=False, show_legend=True, background='white', legend_at_bottom=True)
+    # rendername = './images/S_v_cfg_' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
+    rendername = './images/Combi' + str(Nstart) + '_to_' + str(Nend) + '_v_epsilon_' + str(epsilon) + '_v_cfg_' + str(int(beta * 100)) + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_' + action + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1))
     lineplot=pygal.XY(stroke=False, show_legend=True, background='white', legend_at_bottom=True, style=c_style)
     # for i in range(len(data)):
     data[:, 1] = data[:, 1] - 224944
     data_2[:, 1]= data_2[:, 1] - 224944
-    lineplot.add('l-QCD', data[:])
-    lineplot.add('l-QCD with deformations', data_2[:])
+    lineplot.add('l-QCD action', data[:])
+    lineplot.add('l-QCD action with deformations', data_2[:])
+    lineplot.add('l-QCD plaquette', data_3[:], secondary=True)
+    lineplot.add('l-QCD plaquette with deformations', data_4[:], secondary=True)
     # lineplot.range=(-80000, 10000)
     
     lineplot.x_title='Configuration number'
     lineplot.y_title='Action sum'
     lineplot.render_to_file(rendername + '.svg')
 
-a=grapher_ac()
+
 
 def grapher_rich():
     end=440
@@ -92,8 +99,8 @@ def grapher_rich():
         background='white',
         plot_background='white',
         foreground='black',
-        label_font_size=14,
-        major_label_font_size=14,
+        label_font_size=17,
+        major_label_font_size=17,
         title_font_size=25,
         legend_font_size=20,
         show_y_guides=True
@@ -127,6 +134,7 @@ def grapher_rich():
     
 
 
+
 ## Function to run various analyses on the file
 ## Very outdated, needs a heavy upgrade
 def statistician():
@@ -156,42 +164,47 @@ def SP_slicer():
     # beta=5.7
     dir_1 = './Rich/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
     dir_2 = './Rich_images/' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '/'
+    dir_1='./Rich/W_11x11x11x11_b570_border_4_magnitude_10000000000000000000000000000000000000/'
     U_infile = 'link_' + action + '_' + str(Nt) + 'x' + str(Nx) + 'x' + str(Ny) + 'x' + str(Nz) + '_b' + str(int(betas[0] * 100)) + '_border_' + str(border) + '_magnitude_' + str(int(magnitude_1)) + '_'
+    U_infile= 'link_W_11x11x11x11_b570_border_4_magnitude_10000000000000000000000000000000000000_433'
     bet=betas[0]
     aa=tools_v1.fn_a(bet)
     kappa=Relative_tools.kappa_calc(aa)
     for i in range(end - thermal):
+        if i == 101:
+            idx=i+thermal
+            input_file = dir_1 + U_infile + str(idx)
+            input_file=dir_1 + U_infile
+            SP=np.load(input_file)
+            print(SP[5,5,5,5])
+        # x=range(len(SP))
+        # y=range(len(SP))
+        # fig = plt.figure()
+        # ax = plt.axes(projection='3d')
+        # X, Y = np.meshgrid(x, y) 
+        # ax.plot_wireframe(X, Y, SP[border+1][:][:][border+1])
+        # ax.set_xlabel('x')
+        # ax.set_ylabel('y')
+        # ax.set_zlabel('z')
 
-        idx=i+thermal
-        input_file = dir_1 + U_infile + str(idx)
-        SP=np.load(input_file)
-        x=range(len(SP))
-        y=range(len(SP))
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
-        X, Y = np.meshgrid(x, y) 
-        ax.plot_wireframe(X, Y, SP[border+1][:][:][border+1])
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+        # # norm=plt.Normalize(SP.min(), grid.max())
+        # colors=plt.viridis()
+        # surf=ax.plot_surface(X, Y, SP[border+2][:][:][border+2]*kappa, rstride=2, cstride=2, cmap=cm.colors.ListedColormap((0,0,0,0)), antialiased=False, )
+        # m = plt.cm.ScalarMappable(surf.norm)
+        # surf.set_edgecolors(m.to_rgba(surf.get_array()))
+        # ax.set_zlim(0, 9)
+        # surf.set_facecolor([0]*4)
+        # ax.set_xlabel('X direction')
+        # ax.set_ylabel('Y direction')
+        # ax.set_zlabel('Ricci scalar curvature * ' +  r'$\kappa$')
+        # ax.view_init(elev=0, azim=150)
+        # # plt.show()
+        # if not os.path.exists(dir_2):
+        #     os.mkdir(dir_2)
+        # out_file= dir_2 + U_infile + '_' + str(idx)
+        # fig.savefig(out_file)
 
-        # norm=plt.Normalize(SP.min(), grid.max())
-        colors=plt.viridis()
-        surf=ax.plot_surface(X, Y, SP[border+2][:][:][border+2]*kappa, rstride=2, cstride=2, cmap=cm.colors.ListedColormap((0,0,0,0)), antialiased=False, )
-        m = plt.cm.ScalarMappable(surf.norm)
-        surf.set_edgecolors(m.to_rgba(surf.get_array()))
-        ax.set_zlim(0, 9)
-        surf.set_facecolor([0]*4)
-        ax.set_xlabel('X direction')
-        ax.set_ylabel('Y direction')
-        ax.set_zlabel('Ricci scalar curvature * ' +  r'$\kappa$')
-        ax.view_init(elev=0, azim=150)
-        # plt.show()
-        if not os.path.exists(dir_2):
-            os.mkdir(dir_2)
-        out_file= dir_2 + U_infile + '_' + str(idx)
-        fig.savefig(out_file)
-
+sp=SP_slicer()
 ### Same as above but for LQCD part
 def U_slicer():
     end=440
